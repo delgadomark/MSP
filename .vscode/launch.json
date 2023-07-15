@@ -9,7 +9,7 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/main/manage.py",
-      "args": ["runserver"],
+      "args": ["runserver", "8080"],
       "django": true,
       "justMyCode": false,
       "envFile": "${workspaceFolder}/.devcontainer/site.env"
