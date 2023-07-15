@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # My Apps
-    "aboutus.apps.AboutusConfig",
 ]
 
 MIDDLEWARE = [
