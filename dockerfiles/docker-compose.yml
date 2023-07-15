@@ -1,9 +1,9 @@
 version: '3.4'
 services:
-  devcontainer:
+  dev-container:
     image: mcr.microsoft.com/devcontainers/python:0-3.11
     network_mode: "host"
     env_file:
-      - site.env
+      - ../.config/site.env
     volumes:
-      - ./:/workspaces/simple-django
+      - ../:/workspaces/simple-django

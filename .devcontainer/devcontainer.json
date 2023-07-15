@@ -1,57 +1,62 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-  "build": {
-      "dockerfile": "Dockerfile",
-      "context": "."
-  },
+  "name": "Simple Django",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "dockerComposeFile": [
+    "../dockerfiles/docker-compose.yml"
+  ],
+  "workspaceFolder": "/workspaces/simple-django",
+  "service": "dev-container",
+  "shutdownAction": "stopCompose",
+  "overrideCommand": true,
   "features": {
-      "ghcr.io/devcontainers/features/common-utils:2":{
-          "installZsh": "true",
-          "username": "vscode",
-          "userUid": "1000",
-          "userGid": "1000",
-          "upgradePackages": "true"
-      },
-      "ghcr.io/devcontainers/features/python:1": "none",
-      "ghcr.io/devcontainers/features/node:1": "none",
-      "ghcr.io/devcontainers/features/git:1": {},
-      "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-        "packages": "iputils-ping,dnsutils,xmlsec1"
-      },
-      "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
-// Configure tool-specific properties.
-"customizations": {
-  // Configure properties specific to VS Code.
-  "vscode": {
-    // Set *default* container specific settings.json values on container create.
-    "settings": {
-      "python.defaultInterpreterPath": "/usr/local/bin/python"
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers-contrib/features/typescript:2": {},
+    "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
+    "ghcr.io/guiyomh/features/vim:0": {},
+    "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+      "packages": "iputils-ping,dnsutils,xmlsec1"
     },
-    "extensions": [
-      "ms-python.python",
-      "ms-python.isort",
-      "ms-python.vscode-pylance",
-      "ms-python.pylint",
-      "ms-python.black-formatter",
-      "batisteo.vscode-django",
-      "esbenp.prettier-vscode",
-      "ryanluker.vscode-coverage-gutters",
-      "njpwerner.autodocstring",
-      "ms-azuretools.vscode-docker",
-      "amodio.toggle-excluded-files",
-      "monosans.djlint",
-      "ms-vscode-remote.remote-wsl",
-      "mikestead.dotenv",
-      "gruntfuggly.todo-tree"
-    ]
-  }
-},
-// Use 'forwardPorts' to make a list of ports inside the container available locally.
-// "forwardPorts": [],
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.isort",
+        "ms-python.vscode-pylance",
+        "ms-python.pylint",
+        "ms-python.black-formatter",
+        "batisteo.vscode-django",
+        "mgmcdermott.vscode-language-babel",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ryanluker.vscode-coverage-gutters",
+        "njpwerner.autodocstring",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "amodio.toggle-excluded-files",
+        "monosans.djlint",
+        "dsznajder.es7-react-js-snippets",
+        "ms-vscode-remote.remote-wsl",
+        "mikestead.dotenv",
+        "gruntfuggly.todo-tree",
+        "github.vscode-pull-request-github"
+      ]
+    }
+  },
 
-// Use 'postCreateCommand' to run commands after the container is created.
-"postCreateCommand": "pip3 install --user -r requirements.txt && pre-commit install -c .config/.pre-commit-config.yaml"
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
 
-// Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-// "remoteUser": "vscode"
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "pip3 install --user debugpy black -r requirements.txt && pre-commit install --config .config/.pre-commit-config.yaml"
+
+  // Configure tool-specific properties.
+  // "customizations": {},
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
 }
