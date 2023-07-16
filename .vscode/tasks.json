@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "pre-commit-task",
+            "command": "pre-commit",
+            "args": [
+                "run",
+                "--config",
+                ".config/.pre-commit-config.yaml"
+            ],
+            "type": "shell",
+            "problemMatcher": []
+        }
+    ]
+}
