@@ -13,7 +13,6 @@
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/devcontainers-contrib/features/typescript:2": {},
     "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
     "ghcr.io/guiyomh/features/vim:0": {},
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
@@ -24,26 +23,23 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python",
         "ms-python.isort",
-        "ms-python.vscode-pylance",
-        "ms-python.pylint",
         "ms-python.black-formatter",
         "batisteo.vscode-django",
         "mgmcdermott.vscode-language-babel",
         "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
         "ryanluker.vscode-coverage-gutters",
         "njpwerner.autodocstring",
         "ms-azuretools.vscode-docker",
-        "eamodio.gitlens",
         "amodio.toggle-excluded-files",
         "monosans.djlint",
-        "dsznajder.es7-react-js-snippets",
         "ms-vscode-remote.remote-wsl",
         "mikestead.dotenv",
         "gruntfuggly.todo-tree",
-        "github.vscode-pull-request-github"
+        "github.vscode-pull-request-github",
+        "ms-python.pylint",
+        "ms-python.vscode-pylance",
+        "ms-python.python"
       ]
     }
   },
