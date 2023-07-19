@@ -3,9 +3,8 @@
 {
   "name": "Simple Django",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "dockerComposeFile": [
-    "../dockerfiles/docker-compose.yml"
-  ],
+  "dockerComposeFile": ["../dockerfiles/docker-compose.yml"],
+  "containerEnv": { "TZ": "America/Chicago" },
   "workspaceFolder": "/workspaces/simple-django",
   "service": "dev-container",
   "shutdownAction": "stopCompose",
