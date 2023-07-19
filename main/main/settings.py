@@ -149,3 +149,9 @@ EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", None)
 
 
 LOGIN_REDIRECT_URL = "/"
+
+if os.environ.get("TESTING_ENVIRONMENT") == "true":
+    # This environment variable is passed during testing.
+    # In some situations it can be beneficial to
+    # remove or add Django settings during tests.
+    pass
