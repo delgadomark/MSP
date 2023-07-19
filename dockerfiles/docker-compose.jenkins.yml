@@ -6,5 +6,5 @@ services:
     user: root
     container_name: jenkins-dev-container
     ports:
-     - 58080:8080  # 8080 tends to be bussy; using something more unique.
+     - 58080:8080  # 8080 tends to be busy; using something more unique.
      - 50000:50000
