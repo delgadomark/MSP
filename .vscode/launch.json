@@ -24,5 +24,21 @@
       "justMyCode": false,
       "envFile": "${workspaceFolder}/dockerfiles/site.env"
     },
+    {
+      "name": "Generate Test Coverage",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "main",
+        "--cov",
+        "--cov-report",
+        "xml:coverage.xml",
+        "--cov-branch"
+      ],
+      "django": true,
+      "justMyCode": false,
+      "env": { "TESTING_ENVIRONMENT": "true" }
+    }
   ]
 }
