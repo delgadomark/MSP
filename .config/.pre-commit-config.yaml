@@ -28,7 +28,7 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
-        args: [--line-length=99]
+        args: [--line-length=99, --preview]
         name: Black Formatter
         exclude: *python_excludes
   - repo: https://github.com/Riverside-Healthcare/djLint
@@ -36,11 +36,3 @@ repos:
     hooks:
       - id: djlint-django
         name: Linting Django Templates
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.37.0
-    hooks:
-      - id: eslint
-        name: EsLint
-        entry: eslint --fix
-        types_or: [javascript, jsx, ts, tsx]
-        types: [file]
