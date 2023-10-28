@@ -9,6 +9,13 @@
       "problemMatcher": []
     },
     {
+      "label": "generate-coverage-xml",
+      "command": "pytest",
+      "args": ["main", "--cov", "--cov-report", "xml:cov.xml", "--cov-branch"],
+      "type": "shell",
+      "problemMatcher": []
+    },
+    {
       "label": "generate-coverage-html",
       "command": "pytest",
       "args": ["main", "--cov", "--cov-report", "html", "--cov-branch"],
