@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pre-commit-task",
+      "command": "pre-commit",
+      "args": ["run", "--config", ".config/.pre-commit-config.yaml"],
+      "type": "shell",
+      "problemMatcher": []
+    },
+    {
+      "label": "generate-coverage-xml",
+      "command": "pytest",
+      "args": ["main", "--cov", "--cov-report", "xml:cov.xml", "--cov-branch"],
+      "type": "shell",
+      "problemMatcher": []
+    },
+    {
+      "label": "generate-coverage-html",
+      "command": "pytest",
+      "args": ["main", "--cov", "--cov-report", "html", "--cov-branch"],
+      "type": "shell",
+      "problemMatcher": []
+    },
+    {
+      "label": "serve-coverage",
+      "dependsOn": ["generate-coverage-html"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceFolder}/htmlcov/"
+      },
+      "command": "python3 -m http.server 5000",
+      "problemMatcher": []
+    }
+  ]
+}
