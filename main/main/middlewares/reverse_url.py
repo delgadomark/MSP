@@ -1,4 +1,4 @@
-from django.urls import resolve  # pylint: disable=missing-module-docstring
+from django.urls import resolve
 
 
 class GetReverseUrl:
