@@ -14,15 +14,32 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
 from .views import Homepage
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Test Project API",
+        default_version="v1",
+        description="API documentation for your project",
+    ),
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path("", Homepage.as_view(), name="homepage"),
     path("admin/", admin.site.urls),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
     path("accounts/", include("django.contrib.auth.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
