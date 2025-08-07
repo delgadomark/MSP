@@ -1,0 +1,248 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% block title %}{{ ticket.ticket_number }} - {{ ticket.title }}{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Ticket Header -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fa fa-ticket"></i> {{ ticket.ticket_number }}
+                        <span class="badge
+                            {% if ticket.status == 'new' %}bg-primary
+                            {% elif ticket.status == 'assigned' %}bg-info
+                            {% elif ticket.status == 'in_progress' %}bg-warning
+                            {% elif ticket.status == 'resolved' %}bg-success
+                            {% elif ticket.status == 'closed' %}bg-secondary
+                            {% else %}bg-warning{% endif %}">
+                            {{ ticket.get_status_display }}
+                        </span>
+                    </h4>
+                    <div>
+                        <a href="{% url 'helpdesk:ticket_update' ticket.ticket_number %}" class="btn btn-outline-primary">
+                            <i class="fa fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'helpdesk:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5>{{ ticket.title }}</h5>
+                    <p>{{ ticket.description|linebreaks }}</p>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <strong>Priority:</strong>
+                            <span class="badge
+                                {% if ticket.priority == 'urgent' %}bg-danger
+                                {% elif ticket.priority == 'high' %}bg-warning
+                                {% elif ticket.priority == 'medium' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ ticket.get_priority_display }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Category:</strong> {{ ticket.get_category_display }}
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <strong>Created:</strong> {{ ticket.created_at }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Last Updated:</strong> {{ ticket.updated_at }}
+                        </div>
+                    </div>
+
+                    {% if ticket.assigned_to %}
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <strong>Assigned To:</strong> {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa fa-user"></i> Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Name:</strong> {{ ticket.customer_name }}<br />
+                            <strong>Email:</strong> <a href="mailto:{{ ticket.customer_email }}">{{ ticket.customer_email }}</a><br />
+                            {% if ticket.customer_phone %}
+                            <strong>Phone:</strong> {{ ticket.customer_phone }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if customer_info %}
+                            <div class="border-start ps-3">
+                                <h6>Computer Information</h6>
+                                {% if customer_info.computer_make %}
+                                <strong>Make/Model:</strong> {{ customer_info.computer_make }} {{ customer_info.computer_model }}<br />
+                                {% endif %}
+                                {% if customer_info.operating_system %}
+                                <strong>OS:</strong> {{ customer_info.operating_system }} {{ customer_info.os_version }}<br />
+                                {% endif %}
+                                {% if customer_info.serial_number %}
+                                <strong>Serial:</strong> {{ customer_info.serial_number }}<br />
+                                {% endif %}
+                                <a href="{% url 'helpdesk:customer_detail' customer_info.pk %}" class="btn btn-sm btn-outline-info mt-2">
+                                    View Full Customer Profile
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="text-muted">
+                                <p>No computer information available.</p>
+                                <a href="{% url 'helpdesk:customer_create' %}?email={{ ticket.customer_email }}" class="btn btn-sm btn-outline-primary">
+                                    Add Customer Info
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes/Comments -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa fa-comments"></i> Notes & Updates</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add Note Form -->
+                    <form method="post" action="{% url 'helpdesk:add_ticket_note' ticket.ticket_number %}" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ note_form.note }}
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ note_form.is_internal }}
+                            <label class="form-check-label" for="{{ note_form.is_internal.id_for_label }}">
+                                Internal note (not visible to customer)
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-plus"></i> Add Note
+                        </button>
+                    </form>
+
+                    <!-- Notes List -->
+                    {% for note in notes %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ note.author.get_full_name|default:note.author.username }}</strong>
+                                {% if note.is_internal %}
+                                <span class="badge bg-warning">Internal</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ note.created_at }}</small>
+                        </div>
+                        <p class="mt-2 mb-0">{{ note.note|linebreaks }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No notes yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- SLA Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fa fa-clock"></i> SLA Status</h6>
+                </div>
+                <div class="card-body">
+                    {% if ticket.response_due %}
+                    <div class="mb-3">
+                        <strong>Response Due:</strong><br />
+                        <span class="{% if ticket.is_response_overdue %}text-danger{% else %}text-success{% endif %}">
+                            {{ ticket.response_due }}
+                        </span>
+                        {% if ticket.is_response_overdue %}
+                        <br /><small class="text-danger">OVERDUE</small>
+                        {% elif ticket.first_response_at %}
+                        <br /><small class="text-success">Responded</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if ticket.resolution_due %}
+                    <div class="mb-3">
+                        <strong>Resolution Due:</strong><br />
+                        <span class="{% if ticket.is_resolution_overdue %}text-danger{% else %}text-success{% endif %}">
+                            {{ ticket.resolution_due }}
+                        </span>
+                        {% if ticket.is_resolution_overdue %}
+                        <br /><small class="text-danger">OVERDUE</small>
+                        {% elif ticket.resolved_at %}
+                        <br /><small class="text-success">Resolved</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if ticket.first_response_at %}
+                    <div class="mb-3">
+                        <strong>First Response:</strong><br />
+                        {{ ticket.first_response_at }}
+                    </div>
+                    {% endif %}
+
+                    {% if ticket.resolved_at %}
+                    <div class="mb-3">
+                        <strong>Resolved:</strong><br />
+                        {{ ticket.resolved_at }}
+                    </div>
+                    {% endif %}
+
+                    {% if ticket.closed_at %}
+                    <div class="mb-3">
+                        <strong>Closed:</strong><br />
+                        {{ ticket.closed_at }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Update Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fa fa-edit"></i> Quick Update</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'helpdesk:ticket_update' ticket.ticket_number %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            {{ update_form.status }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            {{ update_form.priority }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Assigned To</label>
+                            {{ update_form.assigned_to }}
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fa fa-save"></i> Update
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,223 @@
+{% extends "main/base.html" %}
+{% block title %}SLA Performance Report{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <h1><i class="fa fa-chart-bar"></i> SLA Performance Report</h1>
+            <p class="text-muted">Service Level Agreement compliance and performance metrics</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'helpdesk:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- SLA Performance Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="{% if response_sla_percentage >= 90 %}text-success{% elif response_sla_percentage >= 70 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ response_sla_percentage }}%
+                    </h2>
+                    <h5 class="card-title">Response SLA</h5>
+                    <p class="text-muted">Percentage of tickets responded to within SLA</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="{% if resolution_sla_percentage >= 90 %}text-success{% elif resolution_sla_percentage >= 70 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ resolution_sla_percentage }}%
+                    </h2>
+                    <h5 class="card-title">Resolution SLA</h5>
+                    <p class="text-muted">Percentage of tickets resolved within SLA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLA Configuration -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">SLA Configuration</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Priority</th>
+                            <th>Response Time (Hours)</th>
+                            <th>Resolution Time (Hours)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sla in sla_levels %}
+                        <tr>
+                            <td>
+                                <span class="badge
+                                    {% if sla.priority == 'urgent' %}bg-danger
+                                    {% elif sla.priority == 'high' %}bg-warning
+                                    {% elif sla.priority == 'medium' %}bg-info
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ sla.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>{{ sla.response_time_hours }}</td>
+                            <td>{{ sla.resolution_time_hours }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                No SLA levels configured. Please configure SLA levels in the admin panel.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Tickets -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        Overdue Responses ({{ overdue_response.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if overdue_response %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Customer</th>
+                                    <th>Due</th>
+                                    <th>Priority</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in overdue_response %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'helpdesk:ticket_detail' ticket.ticket_number %}">
+                                            {{ ticket.ticket_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ ticket.customer_name }}</td>
+                                    <td>{{ ticket.response_due|timesince }} ago</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if ticket.priority == 'urgent' %}bg-danger
+                                            {% elif ticket.priority == 'high' %}bg-warning
+                                            {% elif ticket.priority == 'medium' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ ticket.get_priority_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-success mb-0">
+                        <i class="fa fa-check-circle"></i> All tickets have been responded to within SLA!
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0 text-danger">
+                        <i class="fa fa-exclamation-circle"></i>
+                        Overdue Resolutions ({{ overdue_resolution.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if overdue_resolution %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Customer</th>
+                                    <th>Due</th>
+                                    <th>Priority</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in overdue_resolution %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'helpdesk:ticket_detail' ticket.ticket_number %}">
+                                            {{ ticket.ticket_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ ticket.customer_name }}</td>
+                                    <td>{{ ticket.resolution_due|timesince }} ago</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if ticket.priority == 'urgent' %}bg-danger
+                                            {% elif ticket.priority == 'high' %}bg-warning
+                                            {% elif ticket.priority == 'medium' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ ticket.get_priority_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-success mb-0">
+                        <i class="fa fa-check-circle"></i> All tickets are being resolved within SLA!
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Summary Statistics</h5>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <h4>{{ total_tickets }}</h4>
+                    <p class="text-muted">Total Tickets</p>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="text-danger">{{ overdue_response.count }}</h4>
+                    <p class="text-muted">Response Overdue</p>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="text-danger">{{ overdue_resolution.count }}</h4>
+                    <p class="text-muted">Resolution Overdue</p>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="text-success">{{ total_tickets|add:overdue_response.count|add:overdue_resolution.count|sub:total_tickets }}</h4>
+                    <p class="text-muted">On Track</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

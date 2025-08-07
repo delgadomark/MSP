@@ -1,0 +1,126 @@
+{% extends "main/base.html" %}
+{% block title %}Customer Management{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <h1><i class="fa fa-users"></i> Customer Management</h1>
+            <p class="text-muted">Manage customer information and computer details</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'helpdesk:customer_create' %}" class="btn btn-primary">
+                <i class="fa fa-plus"></i> Add Customer
+            </a>
+            <a href="{% url 'helpdesk:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="search" class="form-control" placeholder="Search customers by name, email, company..." value="{{ request.GET.search }}" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'helpdesk:customer_list' %}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customers List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Customers</h5>
+        </div>
+        <div class="card-body">
+            {% if customers %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Company</th>
+                            <th>Computer</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td>{{ customer.customer_name }}</td>
+                            <td>
+                                <a href="mailto:{{ customer.customer_email }}">{{ customer.customer_email }}</a>
+                            </td>
+                            <td>{{ customer.company|default:"-" }}</td>
+                            <td>
+                                {% if customer.computer_make %}
+                                    {{ customer.computer_make }} {{ customer.computer_model }}
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ customer.updated_at|timesince }} ago</td>
+                            <td>
+                                <a href="{% url 'helpdesk:customer_detail' customer.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa fa-eye"></i> View
+                                </a>
+                                <a href="{% url 'helpdesk:customer_update' customer.pk %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fa fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Customer pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No customers found.</p>
+                <a href="{% url 'helpdesk:customer_create' %}" class="btn btn-primary">Add First Customer</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}

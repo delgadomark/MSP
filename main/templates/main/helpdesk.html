@@ -1,0 +1,185 @@
+{% extends "main/base.html" %}
+{% block title %}Helpdesk{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-4">Help & Support</h1>
+                <p class="lead">We're here to help you with any questions or issues you might have.</p>
+            </div>
+
+            <!-- Quick Help Section -->
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fa fa-question-circle fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Frequently Asked Questions</h5>
+                            <p class="card-text">Find answers to common questions about our services and products.</p>
+                            <a href="#faq" class="btn btn-primary">View FAQ</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fa fa-book fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Documentation</h5>
+                            <p class="card-text">Access our comprehensive guides and documentation.</p>
+                            <a href="#docs" class="btn btn-success">Read Docs</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fa fa-envelope fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Contact Support</h5>
+                            <p class="card-text">Get in touch with our support team for personalized help.</p>
+                            <a href="#contact" class="btn btn-info">Contact Us</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-5" id="contact">
+                <div class="card-header">
+                    <h3 class="mb-0">Contact Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fa fa-envelope"></i> Email Support</h5>
+                            <p>Email us at: <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+                            <p class="text-muted">We typically respond within 24 hours.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fa fa-phone"></i> Phone Support</h5>
+                            <p>Call us at: <a href="tel:{{ support_phone }}">{{ support_phone }}</a></p>
+                            <p class="text-muted">{{ business_hours }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="card mb-5" id="faq">
+                <div class="card-header">
+                    <h3 class="mb-0">Frequently Asked Questions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    How do I reset my password?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    To reset your password, go to the login page and click on "Forgot Password". Enter your email address and follow the instructions sent to your email.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    How can I update my account information?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Log in to your account and navigate to your profile settings. From there, you can update your personal information, preferences, and account details.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    What are your business hours?
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Our support team is available {{ business_hours }}. For urgent issues outside these hours, please email us and we'll respond as soon as possible.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    How can I report a bug or issue?
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Please email us at {{ support_email }} with a detailed description of the issue, including steps to reproduce it and any error messages you see. Screenshots are also helpful.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Ticket Form -->
+            <div class="card" id="ticket">
+                <div class="card-header">
+                    <h3 class="mb-0">Submit a Support Ticket</h3>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" required />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category">
+                                <option value="technical">Technical Issue</option>
+                                <option value="account">Account Problem</option>
+                                <option value="billing">Billing Question</option>
+                                <option value="feature">Feature Request</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="5" placeholder="Please provide a detailed description of your issue..." required></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg me-2">Submit Ticket</button>
+                            {% if user.is_staff %}
+                            <a href="{% url 'helpdesk:dashboard' %}" class="btn btn-outline-info btn-lg">
+                                <i class="fa fa-dashboard"></i> Staff Dashboard
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

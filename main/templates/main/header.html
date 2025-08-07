@@ -12,6 +12,14 @@
         <li class="nav-item">
           <a class="nav-link" href="#">About Us</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'helpdesk' %}">Help & Support</a>
+        </li>
+        {% if user.is_staff %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'helpdesk:dashboard' %}">Ticket Dashboard</a>
+        </li>
+        {% endif %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Our Products
