@@ -104,9 +104,31 @@ class Ticket(models.Model):
     def __str__(self):
         return f"{self.ticket_number} - {self.title}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):  # pylint: disable=too-many-branches
+        # Check if this is an existing ticket (has an ID)
+        is_new = self.pk is None
+        old_status = self._get_old_status(is_new)
+
+        self._generate_ticket_number()
+        self._set_creation_time()
+        self._handle_status_changes(old_status)
+        self._set_sla_times()
+
+        super().save(*args, **kwargs)
+
+    def _get_old_status(self, is_new):
+        """Get the old status for change detection"""
+        if is_new:
+            return None
+        try:
+            old_ticket = Ticket.objects.get(pk=self.pk)
+            return old_ticket.status
+        except Ticket.DoesNotExist:
+            return None
+
+    def _generate_ticket_number(self):
+        """Generate unique ticket number if not set"""
         if not self.ticket_number:
-            # Generate ticket number
             last_ticket = Ticket.objects.order_by("-id").first()
             if last_ticket:
                 last_number = int(last_ticket.ticket_number.split("-")[1])
@@ -115,11 +137,36 @@ class Ticket(models.Model):
                 new_number = 1
             self.ticket_number = f"TK-{new_number:06d}"
 
-        # Set created_at if not set (for new objects)
+    def _set_creation_time(self):
+        """Set created_at if not set (for new objects)"""
         if not self.created_at:
             self.created_at = timezone.now()
 
-        # Set SLA times if not set
+    def _handle_status_changes(self, old_status):
+        """Handle status changes and SLA tracking"""
+        current_time = timezone.now()
+
+        # Set resolved_at when ticket is marked as resolved
+        if self.status == Status.RESOLVED and old_status != Status.RESOLVED:
+            if not self.resolved_at:
+                self.resolved_at = current_time
+
+        # Set closed_at when ticket is marked as closed
+        if self.status == Status.CLOSED and old_status != Status.CLOSED:
+            if not self.closed_at:
+                self.closed_at = current_time
+            # Also set resolved_at if not already set
+            if not self.resolved_at:
+                self.resolved_at = current_time
+
+        # Clear timestamps if status is changed back from resolved/closed
+        if self.status not in [Status.RESOLVED, Status.CLOSED]:
+            if old_status in [Status.RESOLVED, Status.CLOSED]:
+                self.resolved_at = None
+                self.closed_at = None
+
+    def _set_sla_times(self):
+        """Set SLA times if not set"""
         if not self.response_due or not self.resolution_due:
             try:
                 sla = SLALevel.objects.get(priority=self.priority)
@@ -131,8 +178,6 @@ class Ticket(models.Model):
                     )
             except SLALevel.DoesNotExist:
                 pass
-
-        super().save(*args, **kwargs)
 
     @property
     def is_response_overdue(self):
@@ -161,6 +206,58 @@ class Ticket(models.Model):
         if self.resolved_at or not self.resolution_due:
             return None
         return self.resolution_due - timezone.now()
+
+    @property
+    def response_time_taken(self):
+        """Actual time taken to respond (if responded)"""
+        if not self.first_response_at or not self.created_at:
+            return None
+        return self.first_response_at - self.created_at
+
+    @property
+    def resolution_time_taken(self):
+        """Actual time taken to resolve (if resolved)"""
+        if not self.resolved_at or not self.created_at:
+            return None
+        return self.resolved_at - self.created_at
+
+    @property
+    def was_response_sla_met(self):
+        """Check if response SLA was met"""
+        if not self.first_response_at or not self.response_due:
+            return None
+        return self.first_response_at <= self.response_due
+
+    @property
+    def was_resolution_sla_met(self):
+        """Check if resolution SLA was met"""
+        if not self.resolved_at or not self.resolution_due:
+            return None
+        return self.resolved_at <= self.resolution_due
+
+    @property
+    def sla_status(self):
+        """Overall SLA status for the ticket"""
+        if self.status in [Status.RESOLVED, Status.CLOSED]:
+            # Ticket is complete, check if SLAs were met
+            response_met = self.was_response_sla_met
+            resolution_met = self.was_resolution_sla_met
+
+            # If no first response was recorded, consider response SLA as met
+            # (this handles cases where tickets are resolved without formal response tracking)
+            if response_met is None and self.first_response_at is None:
+                response_met = True
+
+            if response_met is False or resolution_met is False:
+                return "SLA Missed"
+            if response_met is True and resolution_met is True:
+                return "SLA Met"
+            return "Incomplete Data"
+
+        # Ticket is still open, check if overdue
+        if self.is_response_overdue or self.is_resolution_overdue:
+            return "Overdue"
+        return "On Track"
 
 
 class CustomerInfo(models.Model):

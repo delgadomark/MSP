@@ -200,13 +200,16 @@
                             </td>
                             <td>{{ ticket.created_at|timesince }} ago</td>
                             <td>
-                                {% if ticket.is_response_overdue %}
-                                    <span class="badge bg-danger">Response Overdue</span>
-                                {% elif ticket.is_resolution_overdue %}
-                                    <span class="badge bg-danger">Resolution Overdue</span>
-                                {% else %}
-                                    <span class="badge bg-success">On Track</span>
-                                {% endif %}
+                                {% with status=ticket.sla_status %}
+                                <span class="badge
+                                    {% if status == 'SLA Met' %}bg-success
+                                    {% elif status == 'SLA Missed' %}bg-danger
+                                    {% elif status == 'Overdue' %}bg-danger
+                                    {% elif status == 'On Track' %}bg-primary
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ status }}
+                                </span>
+                                {% endwith %}
                             </td>
                             <td>
                                 <a href="{% url 'helpdesk:ticket_detail' ticket.ticket_number %}" class="btn btn-sm btn-outline-primary">

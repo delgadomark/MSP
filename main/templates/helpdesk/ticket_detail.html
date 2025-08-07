@@ -197,6 +197,9 @@
                     <div class="mb-3">
                         <strong>First Response:</strong><br />
                         {{ ticket.first_response_at }}
+                        {% if ticket.response_time_taken %}
+                        <br /><small class="text-muted">Took: {{ ticket.response_time_taken }}</small>
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -204,6 +207,9 @@
                     <div class="mb-3">
                         <strong>Resolved:</strong><br />
                         {{ ticket.resolved_at }}
+                        {% if ticket.resolution_time_taken %}
+                        <br /><small class="text-muted">Took: {{ ticket.resolution_time_taken }}</small>
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -213,6 +219,21 @@
                         {{ ticket.closed_at }}
                     </div>
                     {% endif %}
+
+                    <!-- Overall SLA Status -->
+                    <div class="mb-3">
+                        <strong>Overall SLA Status:</strong><br />
+                        {% with status=ticket.sla_status %}
+                        <span class="badge
+                            {% if status == 'SLA Met' %}bg-success
+                            {% elif status == 'SLA Missed' %}bg-danger
+                            {% elif status == 'Overdue' %}bg-danger
+                            {% elif status == 'On Track' %}bg-primary
+                            {% else %}bg-secondary{% endif %}">
+                            {{ status }}
+                        </span>
+                        {% endwith %}
+                    </div>
                 </div>
             </div>
 

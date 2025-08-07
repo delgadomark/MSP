@@ -1,6 +1,15 @@
+{% load static %}
 <nav class="navbar order-bottom border-bottom-dark navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{% url 'homepage' %}">Django</a>
+    <a class="navbar-brand" href="{% url 'homepage' %}">
+      <img
+        src="{% static 'images/logo.png' %}"
+        alt="Blue Line Tech"
+        height="60"
+        width="60"
+        class="d-inline-block align-text-top me-2" />
+      Blue Line Tech
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
