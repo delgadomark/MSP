@@ -4,7 +4,7 @@ import os
 import django
 
 # Setup Django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BLT.settings")
 django.setup()
 
 # Import after Django setup
