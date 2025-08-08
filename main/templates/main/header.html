@@ -28,6 +28,18 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'helpdesk:dashboard' %}">Ticket Dashboard</a>
         </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Bid Sheets
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'bid_list' %}">All Bids</a></li>
+            <li><a class="dropdown-item" href="{% url 'bid_create' %}">Create New Bid</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" href="{% url 'customer_list' %}">Customers</a></li>
+            <li><a class="dropdown-item" href="{% url 'company_settings' %}">Settings</a></li>
+          </ul>
+        </li>
         {% endif %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

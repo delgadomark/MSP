@@ -1,0 +1,47 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Delete Bid - {{ object.bid_number }}{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0 text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Delete Bid
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Are you sure you want to delete this bid?</p>
+
+                    <div class="border rounded p-3 mb-4">
+                        <h6><strong>{{ object.bid_number }}</strong> - {{ object.title }}</h6>
+                        <p class="mb-1"><strong>Customer:</strong> {{ object.customer.name }}</p>
+                        <p class="mb-1"><strong>Total Amount:</strong> ${{ object.total_amount|floatformat:2 }}</p>
+                        <p class="mb-0"><strong>Created:</strong> {{ object.created_at|date:"F d, Y" }}</p>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All bid items and email history will also be deleted.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'bid_detail' object.pk %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Yes, Delete Bid
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,342 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Bid{% else %}Create Bid{% endif %}{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% if object %}Edit Bid - {{ object.bid_number }}{% else %}Create New Bid{% endif %}</h1>
+                <a href="{% url 'bid_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            {% if selected_customer %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle"></i>
+                <strong>Customer Pre-selected:</strong> Creating bid for {{ selected_customer.name }}{% if selected_customer.company %} ({{ selected_customer.company }}){% endif %}.
+                Customer information has been auto-populated.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <form method="post" id="bid-form">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Basic Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Basic Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.title.id_for_label }}" class="form-label">{{ form.title.label }}</label>
+                                            {{ form.title }}
+                                            {% if form.title.help_text %}
+                                                <div class="form-text">{{ form.title.help_text }}</div>
+                                            {% endif %}
+                                            {% if form.title.errors %}
+                                                <div class="text-danger">{{ form.title.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.customer.id_for_label }}" class="form-label">{{ form.customer.label }}</label>
+                                            {{ form.customer }}
+                                            <div class="form-text">
+                                                <a href="{% url 'customer_create' %}" target="_blank">Add new customer</a>
+                                            </div>
+                                            {% if form.customer.errors %}
+                                                <div class="text-danger">{{ form.customer.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.project_description.id_for_label }}" class="form-label">{{ form.project_description.label }}</label>
+                                    {{ form.project_description }}
+                                    {% if form.project_description.errors %}
+                                        <div class="text-danger">{{ form.project_description.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.project_address.id_for_label }}" class="form-label">{{ form.project_address.label }}</label>
+                                    {{ form.project_address }}
+                                    {% if selected_customer and selected_customer.address %}
+                                        <div class="form-text text-info">
+                                            <i class="fas fa-info-circle"></i> Auto-populated from customer address
+                                        </div>
+                                    {% endif %}
+                                    {% if form.project_address.errors %}
+                                        <div class="text-danger">{{ form.project_address.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.valid_until.id_for_label }}" class="form-label">{{ form.valid_until.label }}</label>
+                                    {{ form.valid_until }}
+                                    {% if form.valid_until.errors %}
+                                        <div class="text-danger">{{ form.valid_until.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bid Items -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Bid Items</h5>
+                            </div>
+                            <div class="card-body">
+                                {{ formset.management_form }}
+                                <div id="bid-items">
+                                    {% for form in formset %}
+                                        <div class="bid-item-form border rounded p-3 mb-3">
+                                            {{ form.id }}
+                                            {% if form.DELETE %}
+                                                <div class="form-check">
+                                                    {{ form.DELETE }}
+                                                    <label class="form-check-label text-danger" for="{{ form.DELETE.id_for_label }}">
+                                                        Delete this item
+                                                    </label>
+                                                </div>
+                                            {% endif %}
+
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="{{ form.service_item.id_for_label }}" class="form-label">Service Item</label>
+                                                        {{ form.service_item }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="mb-3">
+                                                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                                                        {{ form.description }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
+                                                        {{ form.quantity }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="{{ form.unit_type.id_for_label }}" class="form-label">Unit</label>
+                                                        {{ form.unit_type }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label for="{{ form.unit_price.id_for_label }}" class="form-label">Unit Price</label>
+                                                        {{ form.unit_price }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Total</label>
+                                                        <input type="text" class="form-control item-total" readonly />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <button type="button" class="btn btn-outline-primary" id="add-item">
+                                    <i class="fas fa-plus"></i> Add Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-4">
+                        <!-- Financial Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Financial</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.discount_percentage.id_for_label }}" class="form-label">{{ form.discount_percentage.label }}</label>
+                                    {{ form.discount_percentage }}
+                                    {% if form.discount_percentage.errors %}
+                                        <div class="text-danger">{{ form.discount_percentage.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.tax_percentage.id_for_label }}" class="form-label">{{ form.tax_percentage.label }}</label>
+                                    {{ form.tax_percentage }}
+                                    {% if form.tax_percentage.errors %}
+                                        <div class="text-danger">{{ form.tax_percentage.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms & Conditions -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Terms & Conditions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.custom_terms.id_for_label }}" class="form-label">{{ form.custom_terms.label }}</label>
+                                    {{ form.custom_terms }}
+                                    {% if form.custom_terms.errors %}
+                                        <div class="text-danger">{{ form.custom_terms.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.custom_exclusions.id_for_label }}" class="form-label">{{ form.custom_exclusions.label }}</label>
+                                    {{ form.custom_exclusions }}
+                                    {% if form.custom_exclusions.errors %}
+                                        <div class="text-danger">{{ form.custom_exclusions.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                        <div class="text-danger">{{ form.notes.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save"></i> {% if object %}Update Bid{% else %}Create Bid{% endif %}
+                                </button>
+                                <a href="{% url 'bid_list' %}" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const serviceItemsData = {{ service_items|safe }};
+
+    // Function to update description and pricing when service item is selected
+    function updateServiceItemDetails(selectElement) {
+        const serviceItemId = selectElement.value;
+        if (serviceItemId) {
+            fetch('{% url "service_item_details" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({service_item_id: serviceItemId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const formRow = selectElement.closest('.bid-item-form');
+                    const descInput = formRow.querySelector('[name$="-description"]');
+                    const priceInput = formRow.querySelector('[name$="-unit_price"]');
+                    const unitInput = formRow.querySelector('[name$="-unit_type"]');
+
+                    if (descInput && !descInput.value) {
+                        descInput.value = data.name;
+                    }
+                    if (priceInput) {
+                        priceInput.value = data.unit_price;
+                    }
+                    if (unitInput) {
+                        unitInput.value = data.unit_type;
+                    }
+
+                    updateItemTotal(formRow);
+                }
+            });
+        }
+    }
+
+    // Function to calculate item total
+    function updateItemTotal(formRow) {
+        const qtyInput = formRow.querySelector('[name$="-quantity"]');
+        const priceInput = formRow.querySelector('[name$="-unit_price"]');
+        const totalInput = formRow.querySelector('.item-total');
+
+        if (qtyInput && priceInput && totalInput) {
+            const qty = parseFloat(qtyInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            const total = qty * price;
+            totalInput.value = '$' + total.toFixed(2);
+        }
+    }
+
+    // Add event listeners for existing forms
+    document.querySelectorAll('[name$="-service_item"]').forEach(function(select) {
+        select.addEventListener('change', function() {
+            updateServiceItemDetails(this);
+        });
+    });
+
+    document.querySelectorAll('[name$="-quantity"], [name$="-unit_price"]').forEach(function(input) {
+        input.addEventListener('input', function() {
+            updateItemTotal(this.closest('.bid-item-form'));
+        });
+    });
+
+    // Initial calculation for existing items
+    document.querySelectorAll('.bid-item-form').forEach(function(form) {
+        updateItemTotal(form);
+    });
+
+    // Customer selection change handler
+    const customerSelect = document.querySelector('#id_customer');
+    if (customerSelect) {
+        customerSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                // You could add AJAX call here to fetch customer details and auto-populate
+                // project address if needed
+                console.log('Customer changed to:', selectedOption.text);
+            }
+        });
+    }
+
+    // Add item functionality
+    document.getElementById('add-item').addEventListener('click', function() {
+        const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
+        const formIdx = parseInt(totalForms.value);
+
+        // Create new form based on empty form template
+        // This is a simplified version - in production, you'd want to properly clone the form
+        alert('Add item functionality needs JavaScript form cloning implementation');
+    });
+});
+</script>
+{% endblock content %}

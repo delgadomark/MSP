@@ -1,0 +1,244 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}{{ bid.bid_number }} - {{ bid.title }}{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ bid.bid_number }} - {{ bid.title }}</h1>
+                <div>
+                    <a href="{% url 'bid_edit' bid.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="{% url 'bid_pdf' bid.pk %}" class="btn btn-info">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </a>
+                    <a href="{% url 'bid_email' bid.pk %}" class="btn btn-success">
+                        <i class="fas fa-envelope"></i> Email
+                    </a>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            More Actions
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'bid_create' %}?customer={{ bid.customer.pk }}">
+                                <i class="fas fa-plus text-primary"></i> Create New Bid for {{ bid.customer.name }}
+                            </a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" href="{% url 'bid_delete' bid.pk %}">
+                                <i class="fas fa-trash text-danger"></i> Delete
+                            </a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" href="{% url 'bid_list' %}">
+                                <i class="fas fa-list"></i> Back to List
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Bid Information -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between">
+                            <h5 class="mb-0">Bid Information</h5>
+                            <span class="badge bg-{% if bid.status == 'draft' %}secondary{% elif bid.status == 'sent' %}info{% elif bid.status == 'accepted' %}success{% elif bid.status == 'rejected' %}danger{% else %}warning{% endif %} fs-6">
+                                {{ bid.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Customer:</strong> {{ bid.customer.name }}</p>
+                                    {% if bid.customer.company %}
+                                        <p><strong>Company:</strong> {{ bid.customer.company }}</p>
+                                    {% endif %}
+                                    <p><strong>Email:</strong> {{ bid.customer.email }}</p>
+                                    {% if bid.customer.phone %}
+                                        <p><strong>Phone:</strong> {{ bid.customer.phone }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Created:</strong> {{ bid.created_at|date:"F d, Y" }}</p>
+                                    <p><strong>Valid Until:</strong> {{ bid.valid_until|date:"F d, Y" }}</p>
+                                    {% if bid.is_expired %}
+                                        <p class="text-danger"><strong>Status:</strong> EXPIRED</p>
+                                    {% endif %}
+                                    {% if bid.sent_at %}
+                                        <p><strong>Sent:</strong> {{ bid.sent_at|date:"F d, Y" }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <p><strong>Project Description:</strong></p>
+                            <p class="ms-3">{{ bid.project_description|linebreaks }}</p>
+
+                            {% if bid.project_address %}
+                                <p><strong>Project Address:</strong></p>
+                                <p class="ms-3">{{ bid.project_address|linebreaks }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Bid Items -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Bid Items</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if bid.items.all %}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Description</th>
+                                                <th>Quantity</th>
+                                                <th>Unit</th>
+                                                <th>Unit Price</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in bid.items.all %}
+                                            <tr>
+                                                <td>{{ item.description }}</td>
+                                                <td>{{ item.quantity|floatformat:2 }}</td>
+                                                <td>{{ item.unit_type }}</td>
+                                                <td>${{ item.unit_price|floatformat:2 }}</td>
+                                                <td>${{ item.total_price|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No items added to this bid yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    {% if bid.custom_terms or company_info.default_terms %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Terms and Conditions</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ bid.custom_terms|default:company_info.default_terms|linebreaks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Exclusions -->
+                    {% if bid.custom_exclusions or company_info.default_exclusions %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Exclusions</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ bid.custom_exclusions|default:company_info.default_exclusions|linebreaks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Notes -->
+                    {% if bid.notes %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Notes</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ bid.notes|linebreaks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Sidebar -->
+                <div class="col-md-4">
+                    <!-- Financial Summary -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Financial Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span>${{ bid.subtotal|floatformat:2 }}</span>
+                            </div>
+
+                            {% if bid.discount_percentage > 0 %}
+                            <div class="d-flex justify-content-between text-success">
+                                <span>Discount ({{ bid.discount_percentage }}%):</span>
+                                <span>-${{ bid.discount_amount|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
+
+                            {% if bid.tax_percentage > 0 %}
+                            <div class="d-flex justify-content-between">
+                                <span>Tax ({{ bid.tax_percentage }}%):</span>
+                                <span>${{ bid.tax_amount|floatformat:2 }}</span>
+                            </div>
+                            {% endif %}
+
+                            <hr />
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total:</span>
+                                <span>${{ bid.total_amount|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Information -->
+                    {% if company_info %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ company_info.name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1">{{ company_info.address|linebreaks }}</p>
+                            <p class="mb-1">Phone: {{ company_info.phone }}</p>
+                            {% if company_info.email %}
+                                <p class="mb-1">Email: {{ company_info.email }}</p>
+                            {% endif %}
+                            {% if company_info.website %}
+                                <p class="mb-0">Website: <a href="{{ company_info.website }}" target="_blank">{{ company_info.website }}</a></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Email History -->
+                    {% if bid.email_logs.all %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Email History</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for log in bid.email_logs.all %}
+                            <div class="mb-2 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                <div class="d-flex justify-content-between">
+                                    <small class="fw-bold">{{ log.recipient_email }}</small>
+                                    <small class="text-{% if log.success %}success{% else %}danger{% endif %}">
+                                        {% if log.success %}Sent{% else %}Failed{% endif %}
+                                    </small>
+                                </div>
+                                <div class="text-muted small">{{ log.sent_at|date:"M d, Y H:i" }}</div>
+                                <div class="small">{{ log.subject }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

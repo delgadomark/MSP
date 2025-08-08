@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # My Apps
     "helpdesk",
+    "bidsheets",
 ]
 
 MIDDLEWARE = [
@@ -142,12 +143,21 @@ STATIC_ROOT = os.path.join(BASE_DIR, "collected_static")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Email Configuration for Microsoft/Outlook
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.environ.get("EMAIL_HOST", None)
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", None)
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", None)
-EMAIL_PORT = os.environ.get("EMAIL_PORT", None)
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", None)
+
+# Microsoft 365 / Outlook.com SMTP settings
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp-mail.outlook.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_USE_SSL = False  # Don't use SSL with TLS
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", None)  # Your Microsoft email
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", None)  # App password
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Email timeout settings
+EMAIL_TIMEOUT = 30
 
 
 LOGIN_REDIRECT_URL = "/"
