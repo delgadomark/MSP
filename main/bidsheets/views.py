@@ -208,10 +208,195 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
 
 @login_required
 def generate_bid_pdf(request, pk):
-    """Generate PDF version of bid sheet (placeholder - needs ReportLab)"""
+    """Generate PDF version of bid sheet"""
+    from django.http import HttpResponse
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.pdfgen import canvas
+    from reportlab.platypus import (
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
+    )
+
     bid = get_object_or_404(BidSheet, pk=pk)
-    messages.info(request, "PDF generation not yet implemented")
-    return redirect("bid_detail", pk=pk)
+
+    # Create the HttpResponse object with PDF headers
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="bid_{bid.bid_number}.pdf"'
+
+    # Create the PDF object
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=letter,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=18,
+    )
+
+    # Container for the 'Flowable' objects
+    elements = []
+
+    # Define styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "CustomTitle",
+        parent=styles["Heading1"],
+        fontSize=18,
+        textColor=colors.blue,
+        alignment=TA_CENTER,
+        spaceAfter=20,
+    )
+
+    heading_style = ParagraphStyle(
+        "CustomHeading",
+        parent=styles["Heading2"],
+        fontSize=14,
+        textColor=colors.black,
+        spaceAfter=12,
+    )
+
+    # Company info
+    company_info = CompanyInfo.objects.first()
+    if company_info:
+        # Company header
+        elements.append(Paragraph(f"<b>{company_info.name}</b>", title_style))
+        elements.append(Paragraph(company_info.address.replace("\n", "<br/>"), styles["Normal"]))
+        elements.append(Paragraph(f"Phone: {company_info.phone}", styles["Normal"]))
+        if company_info.email:
+            elements.append(Paragraph(f"Email: {company_info.email}", styles["Normal"]))
+        elements.append(Spacer(1, 20))
+
+    # Bid title
+    elements.append(Paragraph(f"<b>BID SHEET - {bid.bid_number}</b>", title_style))
+    elements.append(Spacer(1, 12))
+
+    # Customer and project info
+    customer_data = [
+        ["Customer:", bid.customer.name],
+        ["Company:", bid.customer.company or "N/A"],
+        ["Phone:", bid.customer.phone or "N/A"],
+        ["Email:", bid.customer.email or "N/A"],
+        ["Project:", bid.title],
+        ["Date:", bid.created_at.strftime("%B %d, %Y")],
+        [
+            "Valid Until:",
+            bid.valid_until.strftime("%B %d, %Y") if bid.valid_until else "N/A",
+        ],
+    ]
+
+    customer_table = Table(customer_data, colWidths=[1.5 * inch, 4 * inch])
+    customer_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (0, -1), colors.lightgrey),
+                ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 10),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]
+        )
+    )
+
+    elements.append(customer_table)
+    elements.append(Spacer(1, 20))
+
+    # Project description
+    if bid.project_description:
+        elements.append(Paragraph("Project Description:", heading_style))
+        elements.append(Paragraph(bid.project_description, styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+    # Items table
+    elements.append(Paragraph("Bid Items:", heading_style))
+
+    # Table headers
+    items_data = [["Service", "Description", "Quantity", "Unit Price", "Total"]]
+
+    # Add bid items
+    for item in bid.items.all():
+        # Get category name safely
+        category_name = "Custom"
+        if item.service_item and item.service_item.category:
+            category_name = item.service_item.category.name
+        elif item.service_item:
+            category_name = "Service"
+
+        items_data.append(
+            [
+                category_name,
+                item.description[:50] + ("..." if len(item.description) > 50 else ""),
+                str(item.quantity),
+                f"${item.unit_price:,.2f}",
+                f"${item.total_price:,.2f}",
+            ]
+        )
+
+    # Add subtotal, tax, and total
+    items_data.extend(
+        [
+            ["", "", "", "Subtotal:", f"${bid.subtotal:,.2f}"],
+            ["", "", "", f"Tax ({bid.tax_percentage}%):", f"${bid.tax_amount:,.2f}"],
+            ["", "", "", "Total:", f"${bid.total_amount:,.2f}"],
+        ]
+    )
+
+    items_table = Table(
+        items_data, colWidths=[1.2 * inch, 2.5 * inch, 0.8 * inch, 1 * inch, 1 * inch]
+    )
+    items_table.setStyle(
+        TableStyle(
+            [
+                # Header row
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 12),
+                # Data rows
+                ("BACKGROUND", (0, 1), (-1, -4), colors.white),
+                ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
+                ("ALIGN", (2, 1), (-1, -1), "RIGHT"),  # Right align numbers
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 1), (-1, -1), 10),
+                # Total rows
+                ("BACKGROUND", (0, -3), (-1, -1), colors.lightgrey),
+                ("FONTNAME", (3, -3), (-1, -1), "Helvetica-Bold"),
+                ("FONTNAME", (4, -1), (4, -1), "Helvetica-Bold"),
+                ("FONTSIZE", (4, -1), (4, -1), 12),
+                # Borders
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]
+        )
+    )
+
+    elements.append(items_table)
+    elements.append(Spacer(1, 20))
+
+    # Terms and conditions
+    if bid.custom_terms:
+        elements.append(Paragraph("Terms and Conditions:", heading_style))
+        elements.append(Paragraph(bid.custom_terms, styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+    # Footer
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("Thank you for your business!", styles["Normal"]))
+
+    # Build PDF
+    doc.build(elements)
+
+    return response
 
 
 @login_required
