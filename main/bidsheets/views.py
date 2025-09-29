@@ -11,6 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
@@ -383,10 +384,37 @@ def generate_bid_pdf(request, pk):
     elements.append(items_table)
     elements.append(Spacer(1, 20))
 
-    # Terms and conditions
-    if bid.custom_terms:
+    # Terms and Conditions
+    terms_text = (
+        bid.custom_terms
+        if bid.custom_terms
+        else (company_info.default_terms if company_info else "")
+    )
+    if terms_text:
         elements.append(Paragraph("Terms and Conditions:", heading_style))
-        elements.append(Paragraph(bid.custom_terms, styles["Normal"]))
+        # Replace line breaks with HTML breaks for proper PDF formatting
+        formatted_terms = terms_text.replace("\n", "<br/>")
+        elements.append(Paragraph(formatted_terms, styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+    # Exclusions
+    exclusions_text = (
+        bid.custom_exclusions
+        if bid.custom_exclusions
+        else (company_info.default_exclusions if company_info else "")
+    )
+    if exclusions_text:
+        elements.append(Paragraph("Exclusions:", heading_style))
+        # Replace line breaks with HTML breaks for proper PDF formatting
+        formatted_exclusions = exclusions_text.replace("\n", "<br/>")
+        elements.append(Paragraph(formatted_exclusions, styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+    # Additional notes
+    if bid.notes:
+        elements.append(Paragraph("Additional Notes:", heading_style))
+        formatted_notes = bid.notes.replace("\n", "<br/>")
+        elements.append(Paragraph(formatted_notes, styles["Normal"]))
         elements.append(Spacer(1, 12))
 
     # Footer
@@ -401,10 +429,101 @@ def generate_bid_pdf(request, pk):
 
 @login_required
 def email_bid(request, pk):
-    """Email bid sheet to customer (placeholder - needs email configuration)"""
+    """Email bid sheet to customer"""
     bid = get_object_or_404(BidSheet, pk=pk)
-    messages.info(request, "Email functionality not yet implemented")
-    return redirect("bid_detail", pk=pk)
+
+    if request.method == "POST":
+        form = EmailBidForm(request.POST)
+        if form.is_valid():
+            try:
+                # Prepare email details
+                recipient_email = form.cleaned_data["recipient_email"]
+                subject = form.cleaned_data["subject"]
+                message_body = form.cleaned_data["message"]
+                include_pdf = form.cleaned_data["include_pdf"]
+
+                # Create email
+                email = EmailMessage(
+                    subject=subject,
+                    body=message_body,
+                    from_email=None,  # Will use DEFAULT_FROM_EMAIL (bids@bluelinetech.org)
+                    to=[recipient_email],
+                )
+
+                # Attach PDF if requested
+                if include_pdf:
+                    # Generate PDF
+                    response = generate_bid_pdf(request, pk)
+                    pdf_content = response.content
+
+                    # Attach PDF to email
+                    email.attach(f"bid_{bid.bid_number}.pdf", pdf_content, "application/pdf")
+
+                # Send email
+                email.send()
+
+                # Log the email
+                BidEmailLog.objects.create(
+                    bid=bid,
+                    recipient_email=recipient_email,
+                    subject=subject,
+                    sent_by=request.user,
+                    sent_at=timezone.now(),
+                    success=True,
+                )
+
+                messages.success(
+                    request,
+                    f"Bid {bid.bid_number} successfully emailed to {recipient_email}",
+                )
+                return redirect("bid_detail", pk=pk)
+
+            except Exception as e:
+                # Log failed email attempt
+                BidEmailLog.objects.create(
+                    bid=bid,
+                    recipient_email=form.cleaned_data["recipient_email"],
+                    subject=form.cleaned_data["subject"],
+                    sent_by=request.user,
+                    sent_at=timezone.now(),
+                    success=False,
+                    error_message=str(e),
+                )
+
+                messages.error(request, f"Failed to send email: {str(e)}")
+    else:
+        # Pre-populate form with bid and customer details
+        initial_data = {
+            "recipient_email": bid.customer.email if bid.customer.email else "",
+            "subject": f"Service Quote #{bid.bid_number} from Blue Line Technology",
+            "message": f"""Dear {bid.customer.name},
+
+Please find attached our service quote #{bid.bid_number} for your review.
+
+Quote Details:
+- Project: {bid.title}
+- Total Amount: ${bid.total_amount:,.2f}
+- Valid Until: {bid.valid_until.strftime('%B %d, %Y')}
+
+If you have any questions about this quote, please don't hesitate to contact us.
+
+Thank you for considering Blue Line Technology for your project needs.
+
+Best regards,
+Blue Line Technology
+814 E. 10th Street
+Alamogordo, NM 88310
+Phone: 575-479-7470
+Email: bids@bluelinetech.org""",
+            "include_pdf": True,
+        }
+        form = EmailBidForm(initial=initial_data)
+
+    context = {
+        "bid": bid,
+        "form": form,
+    }
+    return render(request, "bidsheets/email_bid.html", context)
 
 
 @login_required

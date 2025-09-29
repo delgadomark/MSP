@@ -1,34 +1,547 @@
 {% extends "main/base.html" %}
-{% block title %}Home{% endblock title %}
+{% load static %}
+{% block title %}Blue Line Technology - Business Solutions{% endblock title %}
+
+{% block extra_head_content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden;
+    }
+
+    .tech-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .serene-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background:
+            linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%),
+            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(200, 200, 255, 0.2) 0%, transparent 50%);
+        animation: gentleFlow 20s ease-in-out infinite;
+    }
+
+    @keyframes gentleFlow {
+        0%, 100% {
+            background-position: 0% 50%, 0% 0%, 0% 0%, 0% 0%;
+            opacity: 0.8;
+        }
+        50% {
+            background-position: 100% 50%, 0% 0%, 0% 0%, 0% 0%;
+            opacity: 1;
+        }
+    }
+
+    .floating-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+        0% {
+            opacity: 0;
+            transform: translateY(100vh) scale(0);
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-100px) scale(1);
+        }
+    }
+
+    .subtle-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: gridDrift 30s linear infinite;
+        opacity: 0.3;
+    }
+
+    @keyframes gridDrift {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+
+    .login-card {
+        background: rgba(10, 25, 40, 0.95);
+        backdrop-filter: blur(15px);
+        border: 2px solid rgba(0, 150, 255, 0.3);
+        border-radius: 20px;
+        box-shadow:
+            0 0 40px rgba(0, 150, 255, 0.2),
+            inset 0 0 20px rgba(0, 150, 255, 0.1);
+        padding: 3rem;
+        max-width: 450px;
+        width: 100%;
+        margin: 2rem;
+        position: relative;
+        z-index: 10;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg,
+            rgba(0, 150, 255, 0.5) 0%,
+            rgba(0, 255, 150, 0.5) 25%,
+            rgba(0, 150, 255, 0.5) 50%,
+            rgba(0, 255, 200, 0.5) 75%,
+            rgba(0, 150, 255, 0.5) 100%);
+        border-radius: 22px;
+        z-index: -1;
+        animation: borderGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes borderGlow {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+
+    .company-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .logo-image {
+        width: 150px;
+        height: 150px;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+    }
+
+    .company-logo h1 {
+        color: #00aaff;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: -1px;
+        text-shadow: 0 0 20px rgba(0, 170, 255, 0.5);
+    }
+
+    .company-tagline {
+        color: #88ccff;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        opacity: 0.9;
+    }
+
+    .tech-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00aaff, #00ff88, #00aaff, transparent);
+        margin: 1.5rem 0;
+        animation: dividerFlow 2s ease-in-out infinite;
+    }
+
+    @keyframes dividerFlow {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        color: #88ccff;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        border: 2px solid rgba(0, 150, 255, 0.3);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(0, 20, 40, 0.8);
+        color: #ffffff;
+    }
+
+    .form-control:focus {
+        border-color: #00aaff;
+        box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+        background: rgba(0, 30, 50, 0.9);
+        color: #ffffff;
+    }
+
+    .form-control::placeholder {
+        color: #666;
+    }
+
+    .btn-tech {
+        background: linear-gradient(135deg, #0066cc 0%, #00aaff 50%, #00ff88 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 2rem;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        width: 100%;
+        font-size: 1rem;
+        box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+    }
+
+    .btn-tech:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 170, 255, 0.4);
+        color: white;
+    }
+
+    .tech-features {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(0, 150, 255, 0.2);
+    }
+
+    .feature-item {
+        display: inline-block;
+        margin: 0 1rem;
+        color: #88ccff;
+        font-size: 0.8rem;
+    }
+
+    .feature-icon {
+        color: #00aaff;
+        margin-right: 0.3rem;
+    }
+
+    .error-message {
+        background: rgba(255, 80, 80, 0.2);
+        border: 1px solid rgba(255, 80, 80, 0.4);
+        color: #ff8888;
+        padding: 0.8rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .floating-elements {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .floating-element {
+        position: absolute;
+        animation: gentleFloat 8s ease-in-out infinite;
+    }
+
+    .floating-element i {
+        color: rgba(255, 255, 255, 0.2);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    }
+
+    @keyframes gentleFloat {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+            opacity: 0.2;
+        }
+        50% {
+            transform: translateY(-15px) rotate(5deg);
+            opacity: 0.4;
+        }
+    }
+
+    /* Floating element positions */
+    .floating-1 {
+        top: 15%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .floating-1 i {
+        font-size: 2rem;
+    }
+
+    .floating-2 {
+        top: 25%;
+        right: 15%;
+        animation-delay: 2s;
+    }
+
+    .floating-2 i {
+        font-size: 1.5rem;
+    }
+
+    .floating-3 {
+        bottom: 25%;
+        left: 20%;
+        animation-delay: 4s;
+    }
+
+    .floating-3 i {
+        font-size: 1.8rem;
+    }
+
+    .floating-4 {
+        bottom: 35%;
+        right: 10%;
+        animation-delay: 1s;
+    }
+
+    .floating-4 i {
+        font-size: 1.6rem;
+    }
+
+    .floating-5 {
+        top: 45%;
+        left: 5%;
+        animation-delay: 3s;
+    }
+
+    .floating-5 i {
+        font-size: 1.4rem;
+    }
+
+    .floating-6 {
+        top: 65%;
+        right: 8%;
+        animation-delay: 2.5s;
+    }
+
+    .floating-6 i {
+        font-size: 1.3rem;
+    }
+
+    /* Welcome message styles */
+    .welcome-title {
+        color: #00aaff;
+    }
+
+    .welcome-subtitle {
+        color: #88ccff;
+    }
+
+    /* Button variants */
+    .btn-outline-customer {
+        border-color: #00aaff;
+        color: #00aaff;
+    }
+
+    .btn-outline-support {
+        border-color: #88ccff;
+        color: #88ccff;
+    }
+
+    .btn-outline-logout {
+        border-color: #ff6666;
+        color: #ff6666;
+    }
+
+    /* Copyright text */
+    .copyright-text {
+        color: #666;
+    }
+</style>
+{% endblock extra_head_content %}
 
 {% block content %}
-<div class="jumbotron text-center">
-    <h1>Welcome to this simple Django website!</h1>
-    <h3>The below outlines basic concepts that were used.</h3>
-</div>
+<div class="tech-container">
+    <div class="serene-bg"></div>
+    <div class="subtle-grid"></div>
 
-<div class="container px-4">
-    <div class="row">
-        <div class="col-md-4">
-            <h2>Templates</h2>
-            <p>I have experience building templates using Django's template language. I'm also familiar with using template inheritance and context processors.</p>
-            <a class="btn btn-default" href="#" role="button">View details  »</a>
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="floating-elements">
+        <div class="floating-element floating-1">
+            <i class="fas fa-cloud"></i>
         </div>
-        <div class="col-md-4">
-            <h2>Forms</h2>
-            <p>I have experience building forms using Django's form library. I'm also familiar with using form validation and handling form submissions.</p>
-            <a class="btn btn-default" href="#" role="button">View details  »</a>
+        <div class="floating-element floating-2">
+            <i class="fas fa-leaf"></i>
         </div>
-        <div class="col-md-4 -b--1">
-            <h2>Models</h2>
-            <p>I have experience building models using Django's object-relational mapping (ORM) system. I'm also familiar with using model fields and relationships.</p>
-            <a class="btn btn-default" href="#" role="button">View details  »</a>
+        <div class="floating-element floating-3">
+            <i class="fas fa-sun"></i>
         </div>
-        <div class="col-md-4">
-            <h2>Middleware</h2>
-            <p>I have experience building middleware using Django's middleware framework. I'm also familiar with using middleware to handle requests and responses, as well as to perform authentication and other tasks.</p>
-            <a class="btn btn-default" href="#" role="button">View details  »</a>
+        <div class="floating-element floating-4">
+            <i class="fas fa-moon"></i>
+        </div>
+        <div class="floating-element floating-5">
+            <i class="fas fa-mountain"></i>
+        </div>
+        <div class="floating-element floating-6">
+            <i class="fas fa-water"></i>
+        </div>
+    </div>
+
+    <div class="login-card">
+        <div class="company-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Blue Line Tech" class="logo-image" width="150" height="150" />
+            <h1>Blue Line Technology</h1>
+            <p class="company-tagline">Advanced Business Solutions & Technical Services</p>
+        </div>
+
+        <div class="tech-divider"></div>
+
+        {% if user.is_authenticated %}
+            <div class="text-center">
+                <h3 class="mb-3 welcome-title">Welcome back, {{ user.first_name|default:user.username }}!</h3>
+                <p class="text-muted mb-4 welcome-subtitle">Access your business management tools</p>
+
+                {% if user.is_staff %}
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{% url 'bid_list' %}" class="btn btn-tech">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>Bid Management
+                        </a>
+                        <a href="{% url 'customer_list' %}" class="btn btn-outline-primary btn-outline-customer">
+                            <i class="fas fa-users me-2"></i>Customer Portal
+                        </a>
+                        <a href="{% url 'helpdesk:dashboard' %}" class="btn btn-outline-secondary btn-outline-support">
+                            <i class="fas fa-headset me-2"></i>Support Dashboard
+                        </a>
+                    </div>
+                {% endif %}
+
+                <div class="mt-3">
+                    <a href="{% url 'admin:logout' %}" class="btn btn-outline-danger btn-sm btn-outline-logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <form method="post" action="{% url 'admin:login' %}">
+                {% csrf_token %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="id_username" class="form-label">
+                        <i class="fas fa-user me-2"></i>Username
+                    </label>
+                    <input type="text"
+                           class="form-control"
+                           name="username"
+                           id="id_username"
+                           placeholder="Enter your username"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label for="id_password" class="form-label">
+                        <i class="fas fa-lock me-2"></i>Password
+                    </label>
+                    <input type="password"
+                           class="form-control"
+                           name="password"
+                           id="id_password"
+                           placeholder="Enter your password"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-tech">
+                        <i class="fas fa-sign-in-alt me-2"></i>Access System
+                    </button>
+                </div>
+
+                <input type="hidden" name="next" value="{% url 'homepage' %}" />
+            </form>
+        {% endif %}
+
+        <div class="tech-features">
+            <div class="feature-item">
+                <i class="fas fa-shield-alt feature-icon"></i>Secure
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-bolt feature-icon"></i>Fast
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-mobile-alt feature-icon"></i>Responsive
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-cloud feature-icon"></i>Cloud-Ready
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <small class="copyright-text">
+                © 2025 Blue Line Technology. Professional IT Solutions.
+            </small>
         </div>
     </div>
 </div>
+
+<script>
+// Generate gentle floating particles
+function createFloatingParticles() {
+    const particleContainer = document.getElementById('particles');
+    const numParticles = 20;
+
+    for (let i = 0; i < numParticles; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+
+        // Random size between 2px and 6px
+        const size = Math.random() * 4 + 2;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+
+        // Random horizontal position
+        particle.style.left = Math.random() * 100 + '%';
+
+        // Random animation duration between 15s and 25s
+        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+
+        // Random delay
+        particle.style.animationDelay = Math.random() * 5 + 's';
+
+        particleContainer.appendChild(particle);
+    }
+}
+
+// Initialize particles when page loads
+document.addEventListener('DOMContentLoaded', createFloatingParticles);
+</script>
 {% endblock content %}

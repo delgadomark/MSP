@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -271,7 +271,7 @@ def sla_report(request):
     # Response SLA metrics
     tickets_with_response = Ticket.objects.filter(first_response_at__isnull=False)
     response_on_time = tickets_with_response.filter(
-        first_response_at__lte=timezone.F("response_due")
+        first_response_at__lte=F("response_due")
     ).count()
     response_sla_percentage = (
         (response_on_time / tickets_with_response.count() * 100)
@@ -281,9 +281,7 @@ def sla_report(request):
 
     # Resolution SLA metrics
     resolved_tickets = Ticket.objects.filter(resolved_at__isnull=False)
-    resolution_on_time = resolved_tickets.filter(
-        resolved_at__lte=timezone.F("resolution_due")
-    ).count()
+    resolution_on_time = resolved_tickets.filter(resolved_at__lte=F("resolution_due")).count()
     resolution_sla_percentage = (
         (resolution_on_time / resolved_tickets.count() * 100)
         if resolved_tickets.count() > 0
@@ -298,12 +296,16 @@ def sla_report(request):
         resolved_at__isnull=True, resolution_due__lt=timezone.now()
     ).exclude(status__in=[Status.RESOLVED, Status.CLOSED])
 
+    # Calculate tickets on track (total minus overdue)
+    on_track_tickets = total_tickets - overdue_response.count() - overdue_resolution.count()
+
     context = {
         "total_tickets": total_tickets,
         "response_sla_percentage": round(response_sla_percentage, 1),
         "resolution_sla_percentage": round(resolution_sla_percentage, 1),
         "overdue_response": overdue_response,
         "overdue_resolution": overdue_resolution,
+        "on_track_tickets": on_track_tickets,
         "sla_levels": SLALevel.objects.all(),
     }
 
