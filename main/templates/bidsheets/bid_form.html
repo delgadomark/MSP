@@ -3,6 +3,42 @@
 
 {% block title %}{% if object %}Edit Bid{% else %}Create Bid{% endif %}{% endblock title %}
 
+{% block extra_head_content %}
+<style>
+    .item-total {
+        background-color: #f8f9fa !important;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+    .bid-item-form {
+        transition: background-color 0.3s ease;
+    }
+
+    .bid-item-form:hover {
+        background-color: #f8f9fa;
+    }
+
+    #total-display .card-body {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    #display-total {
+        font-size: 1.2em;
+    }
+
+    .calculation-highlight {
+        background-color: #fff3cd !important;
+        transition: background-color 0.5s ease;
+    }
+
+    .new-form-highlight {
+        background-color: #d1ecf1 !important;
+        transition: background-color 2s ease;
+    }
+</style>
+{% endblock extra_head_content %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -154,14 +190,80 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    {% empty %}
+                                        <div class="alert alert-info" id="no-items-message">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>No items added yet.</strong> Click "Add Item" below to start building your bid.
+                                        </div>
                                     {% endfor %}
                                 </div>
 
-                                <button type="button" class="btn btn-outline-primary" id="add-item">
+                                <button type="button" class="btn btn-outline-primary" id="add-item" onclick="addNewItem();">
                                     <i class="fas fa-plus"></i> Add Item
                                 </button>
                             </div>
                         </div>
+
+                        <!-- Hidden template form for cloning -->
+                        <template id="empty-form-template">
+                            <div class="bid-item-form border rounded p-3 mb-3">
+                                <input type="hidden" name="items-__prefix__-id" id="id_items-__prefix__-id" />
+
+                                <div class="form-check">
+                                    <input type="checkbox" name="items-__prefix__-DELETE" class="form-check-input" id="id_items-__prefix__-DELETE" />
+                                    <label class="form-check-label text-danger" for="id_items-__prefix__-DELETE">
+                                        Delete this item
+                                    </label>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="id_items-__prefix__-service_item" class="form-label">Service Item</label>
+                                            <select name="items-__prefix__-service_item" class="form-select" id="id_items-__prefix__-service_item">
+                                                <option value="">Select a service item...</option>
+                                                {% for item in service_items %}
+                                                    <option value="{{ item.id }}">{{ item.category.name }} - {{ item.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="id_items-__prefix__-description" class="form-label">Description</label>
+                                            <textarea name="items-__prefix__-description" class="form-control" rows="2" id="id_items-__prefix__-description"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="id_items-__prefix__-quantity" class="form-label">Quantity</label>
+                                            <input type="number" name="items-__prefix__-quantity" class="form-control" step="0.01" min="0" id="id_items-__prefix__-quantity" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="id_items-__prefix__-unit_type" class="form-label">Unit</label>
+                                            <input type="text" name="items-__prefix__-unit_type" class="form-control" maxlength="20" id="id_items-__prefix__-unit_type" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="id_items-__prefix__-unit_price" class="form-label">Unit Price</label>
+                                            <input type="number" name="items-__prefix__-unit_price" class="form-control" step="0.01" min="0" id="id_items-__prefix__-unit_price" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Total</label>
+                                            <input type="text" class="form-control item-total" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                     </div>
 
                     <!-- Right Column -->
@@ -244,99 +346,90 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const serviceItemsData = {{ service_items|safe }};
-
-    // Function to update description and pricing when service item is selected
-    function updateServiceItemDetails(selectElement) {
-        const serviceItemId = selectElement.value;
-        if (serviceItemId) {
-            fetch('{% url "service_item_details" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({service_item_id: serviceItemId})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const formRow = selectElement.closest('.bid-item-form');
-                    const descInput = formRow.querySelector('[name$="-description"]');
-                    const priceInput = formRow.querySelector('[name$="-unit_price"]');
-                    const unitInput = formRow.querySelector('[name$="-unit_type"]');
-
-                    if (descInput && !descInput.value) {
-                        descInput.value = data.name;
-                    }
-                    if (priceInput) {
-                        priceInput.value = data.unit_price;
-                    }
-                    if (unitInput) {
-                        unitInput.value = data.unit_type;
-                    }
-
-                    updateItemTotal(formRow);
-                }
-            });
-        }
+// Simple working Add Item function
+function addNewItem() {
+    // Get current form count
+    const totalFormsInput = document.querySelector('#id_items-TOTAL_FORMS');
+    if (!totalFormsInput) {
+        alert('Error: Could not find TOTAL_FORMS input');
+        return;
     }
 
-    // Function to calculate item total
-    function updateItemTotal(formRow) {
-        const qtyInput = formRow.querySelector('[name$="-quantity"]');
-        const priceInput = formRow.querySelector('[name$="-unit_price"]');
-        const totalInput = formRow.querySelector('.item-total');
+    const formIdx = parseInt(totalFormsInput.value);
 
-        if (qtyInput && priceInput && totalInput) {
-            const qty = parseFloat(qtyInput.value) || 0;
-            const price = parseFloat(priceInput.value) || 0;
-            const total = qty * price;
-            totalInput.value = '$' + total.toFixed(2);
-        }
+    // Get the template
+    const template = document.getElementById('empty-form-template');
+    if (!template) {
+        alert('Error: Could not find template');
+        return;
     }
 
-    // Add event listeners for existing forms
-    document.querySelectorAll('[name$="-service_item"]').forEach(function(select) {
-        select.addEventListener('change', function() {
-            updateServiceItemDetails(this);
-        });
-    });
+    // Clone the template content
+    const templateContent = template.content.cloneNode(true);
+    const newForm = templateContent.querySelector('.bid-item-form');
 
-    document.querySelectorAll('[name$="-quantity"], [name$="-unit_price"]').forEach(function(input) {
-        input.addEventListener('input', function() {
-            updateItemTotal(this.closest('.bid-item-form'));
-        });
-    });
-
-    // Initial calculation for existing items
-    document.querySelectorAll('.bid-item-form').forEach(function(form) {
-        updateItemTotal(form);
-    });
-
-    // Customer selection change handler
-    const customerSelect = document.querySelector('#id_customer');
-    if (customerSelect) {
-        customerSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.value) {
-                // You could add AJAX call here to fetch customer details and auto-populate
-                // project address if needed
-                console.log('Customer changed to:', selectedOption.text);
-            }
-        });
+    if (!newForm) {
+        alert('Error: Could not find form in template');
+        return;
     }
 
-    // Add item functionality
-    document.getElementById('add-item').addEventListener('click', function() {
-        const totalForms = document.querySelector('#id_items-TOTAL_FORMS');
-        const formIdx = parseInt(totalForms.value);
+    // Update the form indexes
+    updateFormIndexes(newForm, formIdx);
 
-        // Create new form based on empty form template
-        // This is a simplified version - in production, you'd want to properly clone the form
-        alert('Add item functionality needs JavaScript form cloning implementation');
-    });
-});
+    // Add to container
+    const container = document.getElementById('bid-items');
+    if (!container) {
+        alert('Error: Could not find container');
+        return;
+    }
+
+    container.appendChild(newForm);
+
+    // Hide no items message
+    const noItemsMsg = document.getElementById('no-items-message');
+    if (noItemsMsg) {
+        noItemsMsg.style.display = 'none';
+    }
+
+    // Update total forms count
+    totalFormsInput.value = formIdx + 1;
+
+    // Add visual highlight to new form
+    newForm.classList.add('new-form-highlight');
+    setTimeout(() => {
+        newForm.classList.remove('new-form-highlight');
+    }, 2000);
+
+    // Scroll to the new form
+    newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+}
+
+// Simple function to update form indexes
+function updateFormIndexes(formElement, newIndex) {
+    // Update name attributes
+    const nameElements = formElement.querySelectorAll('[name*="__prefix__"]');
+    for (let i = 0; i < nameElements.length; i++) {
+        const element = nameElements[i];
+        const name = element.getAttribute('name');
+        element.setAttribute('name', name.replace('__prefix__', newIndex));
+    }
+
+    // Update id attributes
+    const idElements = formElement.querySelectorAll('[id*="__prefix__"]');
+    for (let i = 0; i < idElements.length; i++) {
+        const element = idElements[i];
+        const id = element.getAttribute('id');
+        element.setAttribute('id', id.replace('__prefix__', newIndex));
+    }
+
+    // Update for attributes in labels
+    const labelElements = formElement.querySelectorAll('label[for*="__prefix__"]');
+    for (let i = 0; i < labelElements.length; i++) {
+        const element = labelElements[i];
+        const forAttr = element.getAttribute('for');
+        element.setAttribute('for', forAttr.replace('__prefix__', newIndex));
+    }
+}
 </script>
 {% endblock content %}
