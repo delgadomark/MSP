@@ -111,7 +111,6 @@ class BidSheetCreateView(LoginRequiredMixin, CreateView):
 
         with transaction.atomic():
             form.instance.created_by = self.request.user
-            # Set default valid_until to 30 days from now if not provided
             if not form.instance.valid_until:
                 form.instance.valid_until = date.today() + timedelta(days=30)
 
