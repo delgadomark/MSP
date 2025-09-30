@@ -26,6 +26,7 @@ urlpatterns = [
     path("", Homepage.as_view(), name="homepage"),
     path("helpdesk/", HelpdeskView.as_view(), name="helpdesk"),
     path("tickets/", include("helpdesk.urls")),
+    path("bids/", include("bidsheets.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

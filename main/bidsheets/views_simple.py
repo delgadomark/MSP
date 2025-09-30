@@ -1,0 +1,239 @@
+import json
+from datetime import date, timedelta
+from decimal import Decimal
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import EmailMessage
+from django.db import transaction
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import BidSheet, BidItem, Customer, CompanyInfo, ServiceItem, BidEmailLog
+from .forms import (
+    BidSheetForm,
+    BidItemFormSet,
+    CustomerForm,
+    EmailBidForm,
+    CompanyInfoForm,
+)
+
+
+class BidSheetListView(LoginRequiredMixin, ListView):
+    model = BidSheet
+    template_name = "bidsheets/bid_list.html"
+    context_object_name = "bids"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return BidSheet.objects.select_related("customer").order_by("-created_at")
+
+
+class BidSheetDetailView(LoginRequiredMixin, DetailView):
+    model = BidSheet
+    template_name = "bidsheets/bid_detail.html"
+    context_object_name = "bid"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["company_info"] = CompanyInfo.objects.first()
+        return context
+
+
+class BidSheetCreateView(LoginRequiredMixin, CreateView):
+    model = BidSheet
+    form_class = BidSheetForm
+    template_name = "bidsheets/bid_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context["formset"] = BidItemFormSet(self.request.POST)
+        else:
+            context["formset"] = BidItemFormSet()
+        context["service_items"] = ServiceItem.objects.filter(is_active=True).select_related(
+            "category"
+        )
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["formset"]
+
+        with transaction.atomic():
+            form.instance.created_by = self.request.user
+            # Set default valid_until to 30 days from now if not provided
+            if not form.instance.valid_until:
+                form.instance.valid_until = date.today() + timedelta(days=30)
+
+            self.object = form.save()
+
+            if formset.is_valid():
+                formset.instance = self.object
+                formset.save()
+                self.object.recalculate_totals()
+
+        messages.success(self.request, f"Bid {self.object.bid_number} created successfully!")
+        return redirect("bid_detail", pk=self.object.pk)
+
+    def form_invalid(self, form):
+        context = self.get_context_data()
+        messages.error(self.request, "Please correct the errors below.")
+        return self.render_to_response(context)
+
+
+class BidSheetUpdateView(LoginRequiredMixin, UpdateView):
+    model = BidSheet
+    form_class = BidSheetForm
+    template_name = "bidsheets/bid_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context["formset"] = BidItemFormSet(self.request.POST, instance=self.object)
+        else:
+            context["formset"] = BidItemFormSet(instance=self.object)
+        context["service_items"] = ServiceItem.objects.filter(is_active=True).select_related(
+            "category"
+        )
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["formset"]
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            if formset.is_valid():
+                formset.save()
+                self.object.recalculate_totals()
+
+        messages.success(self.request, f"Bid {self.object.bid_number} updated successfully!")
+        return redirect("bid_detail", pk=self.object.pk)
+
+    def form_invalid(self, form):
+        context = self.get_context_data()
+        messages.error(self.request, "Please correct the errors below.")
+        return self.render_to_response(context)
+
+
+class BidSheetDeleteView(LoginRequiredMixin, DeleteView):
+    model = BidSheet
+    template_name = "bidsheets/bid_confirm_delete.html"
+    success_url = reverse_lazy("bid_list")
+
+    def delete(self, request, *args, **kwargs):
+        result = super().delete(request, *args, **kwargs)
+        messages.success(request, "Bid deleted successfully!")
+        return result
+
+
+class CustomerListView(LoginRequiredMixin, ListView):
+    model = Customer
+    template_name = "bidsheets/customer_list.html"
+    context_object_name = "customers"
+    paginate_by = 20
+
+
+class CustomerCreateView(LoginRequiredMixin, CreateView):
+    model = Customer
+    form_class = CustomerForm
+    template_name = "bidsheets/customer_form.html"
+    success_url = reverse_lazy("customer_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Customer {form.instance.name} created successfully!")
+        return super().form_valid(form)
+
+
+class CustomerUpdateView(LoginRequiredMixin, UpdateView):
+    model = Customer
+    form_class = CustomerForm
+    template_name = "bidsheets/customer_form.html"
+    success_url = reverse_lazy("customer_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Customer {form.instance.name} updated successfully!")
+        return super().form_valid(form)
+
+
+@login_required
+def generate_bid_pdf(request, pk):
+    """Generate PDF version of bid sheet (placeholder - needs ReportLab)"""
+    bid = get_object_or_404(BidSheet, pk=pk)
+    messages.info(request, "PDF generation not yet implemented")
+    return redirect("bid_detail", pk=pk)
+
+
+@login_required
+def email_bid(request, pk):
+    """Email bid sheet to customer (placeholder - needs email configuration)"""
+    bid = get_object_or_404(BidSheet, pk=pk)
+    messages.info(request, "Email functionality not yet implemented")
+    return redirect("bid_detail", pk=pk)
+
+
+@login_required
+def company_settings(request):
+    """Manage company information"""
+    company_info, created = CompanyInfo.objects.get_or_create(
+        defaults={
+            "name": "Blue Line Technology",
+            "address": "814 E. 10th Street\nAlamogordo, NM 88310",
+            "phone": "575-479-7470",
+        }
+    )
+
+    if request.method == "POST":
+        form = CompanyInfoForm(request.POST, request.FILES, instance=company_info)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Company information updated successfully!")
+            return redirect("company_settings")
+    else:
+        form = CompanyInfoForm(instance=company_info)
+
+    return render(
+        request,
+        "bidsheets/company_settings.html",
+        {"form": form, "company_info": company_info},
+    )
+
+
+@csrf_exempt
+@login_required
+def get_service_item_details(request):
+    """AJAX endpoint to get service item details"""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        service_item_id = data.get("service_item_id")
+
+        if service_item_id:
+            try:
+                item = ServiceItem.objects.get(id=service_item_id)
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "name": item.name,
+                        "description": item.description,
+                        "unit_price": str(item.default_unit_price),
+                        "unit_type": item.unit_type,
+                    }
+                )
+            except ServiceItem.DoesNotExist:
+                pass
+
+    return JsonResponse({"success": False})
