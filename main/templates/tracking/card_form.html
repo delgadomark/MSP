@@ -1,0 +1,261 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-{% if card %}edit{% else %}plus{% endif %}"></i>
+                    {{ title }}
+                </h1>
+                <a href="{% url 'tracking:card_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Cards
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Project Card Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Basic Information</h6>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.department.id_for_label }}" class="form-label">Department *</label>
+                                            {{ form.department }}
+                                            {% if form.department.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.department.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                            {{ form.status }}
+                                            {% if form.status.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                                            {{ form.priority }}
+                                            {% if form.priority.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.priority.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.estimated_hours.id_for_label }}" class="form-label">Estimated Hours</label>
+                                            {{ form.estimated_hours }}
+                                            {% if form.estimated_hours.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.estimated_hours.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Assignment and Dates -->
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Assignment & Timeline</h6>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assigned To</label>
+                                    {{ form.assigned_to }}
+                                    {% if form.assigned_to.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.assigned_to.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date</label>
+                                    {{ form.due_date }}
+                                    {% if form.due_date.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.due_date.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                {% if form.customer %}
+                                <div class="mb-3">
+                                    <label for="{{ form.customer.id_for_label }}" class="form-label">Customer</label>
+                                    {{ form.customer }}
+                                    {% if form.customer.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.customer.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                {% if form.project_value %}
+                                <div class="mb-3">
+                                    <label for="{{ form.project_value.id_for_label }}" class="form-label">Project Value ($)</label>
+                                    {{ form.project_value }}
+                                    {% if form.project_value.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.project_value.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="alert alert-info">
+                                    <small>
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Tip:</strong> Cards will appear on the Kanban board based on department and status.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Details -->
+                        {% if form.requirements or form.notes %}
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3 mt-3">Additional Details</h6>
+
+                                {% if form.requirements %}
+                                <div class="mb-3">
+                                    <label for="{{ form.requirements.id_for_label }}" class="form-label">Requirements</label>
+                                    {{ form.requirements }}
+                                    {% if form.requirements.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.requirements.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Detailed project requirements and specifications</div>
+                                </div>
+                                {% endif %}
+
+                                {% if form.notes %}
+                                <div class="mb-3">
+                                    <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Additional notes and comments</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'tracking:card_list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i>
+                                        {% if card %}Update Card{% else %}Create Card{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 8px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.text-muted {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.alert-info {
+    background-color: #f8f9fa;
+    border-left: 4px solid #0dcaf0;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-adjust status based on department selection
+    const departmentSelect = document.querySelector('select[name="department"]');
+    const statusSelect = document.querySelector('select[name="status"]');
+
+    if (departmentSelect && statusSelect) {
+        departmentSelect.addEventListener('change', function() {
+            const department = this.value;
+            const currentStatus = statusSelect.value;
+
+            // If no status is selected, suggest a default based on department
+            if (!currentStatus) {
+                if (department === 'technology') {
+                    statusSelect.value = 'tech_backlog';
+                } else if (department === 'print_design') {
+                    statusSelect.value = 'print_backlog';
+                }
+            }
+        });
+    }
+
+    // Date picker enhancement
+    const dueDateInput = document.querySelector('input[name="due_date"]');
+    if (dueDateInput && dueDateInput.type === 'date') {
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        dueDateInput.min = today;
+    }
+});
+</script>
+{% endblock %}

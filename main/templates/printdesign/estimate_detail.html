@@ -1,0 +1,578 @@
+{% extends "main/base.html" %}
+{% load humanize %}
+
+{% block title %}Estimate #{{ estimate.id|stringformat:"05d" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    Estimate #{{ estimate.id|stringformat:"05d" }}
+                    {% if estimate.is_rush %}
+                        <span class="badge bg-danger ms-2">RUSH ORDER</span>
+                    {% endif %}
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'printdesign:estimate_edit' estimate.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i>
+                        Edit Estimate
+                    </a>
+                    <a href="{% url 'printdesign:estimate_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Estimates
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cog"></i>
+                            Actions
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'printdesign:estimate_pdf' estimate.id %}">
+                                <i class="fas fa-file-pdf"></i> Download PDF
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'printdesign:estimate_email' estimate.id %}">
+                                <i class="fas fa-envelope"></i> Email to Customer
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'printdesign:estimate_copy' estimate.id %}">
+                                <i class="fas fa-copy"></i> Duplicate Estimate
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="convertToJob()">
+                                <i class="fas fa-arrow-right"></i> Convert to Job
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="printEstimate()">
+                                <i class="fas fa-print"></i> Print
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Quick Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <h5 class="mb-1">Status</h5>
+                            {% if estimate.status == 'draft' %}
+                                <span class="badge bg-secondary fs-6">Draft</span>
+                            {% elif estimate.status == 'pending' %}
+                                <span class="badge bg-warning fs-6">Pending Review</span>
+                            {% elif estimate.status == 'approved' %}
+                                <span class="badge bg-success fs-6">Approved</span>
+                            {% elif estimate.status == 'rejected' %}
+                                <span class="badge bg-danger fs-6">Rejected</span>
+                            {% elif estimate.status == 'completed' %}
+                                <span class="badge bg-info fs-6">Completed</span>
+                            {% else %}
+                                <span class="badge bg-light fs-6">{{ estimate.status|title }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="mb-1">Total Value</h5>
+                            <p class="mb-0 h4 text-success">
+                                {% if estimate.total_cost %}
+                                    ${{ estimate.total_cost|floatformat:2|intcomma }}
+                                {% else %}
+                                    $0.00
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="mb-1">Customer</h5>
+                            <p class="mb-0">{{ estimate.customer.name|default:"Not assigned" }}</p>
+                            {% if estimate.customer.company %}
+                                <small class="text-muted">{{ estimate.customer.company }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            <h5 class="mb-1">Created</h5>
+                            <p class="mb-0">{{ estimate.created_at|date:"M j, Y" }}</p>
+                            <small class="text-muted">{{ estimate.created_at|time:"g:i A" }}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <h5 class="mb-1">Quantity</h5>
+                            <p class="mb-0">
+                                {% if estimate.quantity %}
+                                    {{ estimate.quantity|intcomma }}
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project and Customer Details -->
+    <div class="row">
+        <!-- Project Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-project-diagram"></i>
+                        Project Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Project Name:</strong><br>
+                            <h6 class="text-primary">{{ estimate.project_name }}</h6>
+                        </div>
+                    </div>
+
+                    {% if estimate.description %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Description:</strong><br>
+                            <div class="bg-light p-3 rounded mt-2">
+                                {{ estimate.description|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Quantity:</strong><br>
+                            <span class="text-muted">
+                                {% if estimate.quantity %}
+                                    {{ estimate.quantity|intcomma }} units
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Profit Margin:</strong><br>
+                            <span class="text-muted">
+                                {% if estimate.profit_margin %}
+                                    {{ estimate.profit_margin }}%
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Rush Order:</strong><br>
+                            {% if estimate.is_rush %}
+                                <span class="badge bg-danger">Yes</span>
+                            {% else %}
+                                <span class="badge bg-success">No</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if estimate.specifications %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Specifications:</strong><br>
+                            <div class="bg-light p-3 rounded mt-2">
+                                {{ estimate.specifications|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if estimate.special_requirements %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Special Requirements:</strong><br>
+                            <div class="alert alert-info">
+                                {{ estimate.special_requirements|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i>
+                        Customer Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if estimate.customer %}
+                    <div class="mb-3">
+                        <strong>Name:</strong><br>
+                        <span class="text-muted">{{ estimate.customer.name }}</span>
+                    </div>
+
+                    {% if estimate.customer.company %}
+                    <div class="mb-3">
+                        <strong>Company:</strong><br>
+                        <span class="text-muted">{{ estimate.customer.company }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if estimate.customer.email %}
+                    <div class="mb-3">
+                        <strong>Email:</strong><br>
+                        <a href="mailto:{{ estimate.customer.email }}" class="text-muted">
+                            <i class="fas fa-envelope"></i>
+                            {{ estimate.customer.email }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if estimate.customer.phone %}
+                    <div class="mb-3">
+                        <strong>Phone:</strong><br>
+                        <a href="tel:{{ estimate.customer.phone }}" class="text-muted">
+                            <i class="fas fa-phone"></i>
+                            {{ estimate.customer.phone }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if estimate.customer.address %}
+                    <div class="mb-3">
+                        <strong>Address:</strong><br>
+                        <address class="text-muted">
+                            {{ estimate.customer.address }}<br>
+                            {% if estimate.customer.city %}{{ estimate.customer.city }}, {% endif %}{% if estimate.customer.state %}{{ estimate.customer.state }} {% endif %}{% if estimate.customer.zip_code %}{{ estimate.customer.zip_code }}{% endif %}
+                        </address>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-user-times fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No customer assigned</p>
+                        <a href="{% url 'printdesign:estimate_edit' estimate.id %}" class="btn btn-sm btn-primary">
+                            Assign Customer
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cost Breakdown -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator"></i>
+                        Cost Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Service Items Table -->
+                            {% if estimate.items.all %}
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Item/Service</th>
+                                            <th>Description</th>
+                                            <th class="text-end">Quantity</th>
+                                            <th class="text-end">Unit Price</th>
+                                            <th class="text-end">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in estimate.items.all %}
+                                        <tr>
+                                            <td><strong>{{ item.service.name }}</strong></td>
+                                            <td>{{ item.service.description|truncatechars:50 }}</td>
+                                            <td class="text-end">{{ item.quantity|intcomma }}</td>
+                                            <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+                                            <td class="text-end"><strong>${{ item.total_price|floatformat:2 }}</strong></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-list fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">No items added to this estimate yet.</p>
+                                <a href="{% url 'printdesign:estimate_edit' estimate.id %}" class="btn btn-primary">
+                                    Add Items
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-lg-4">
+                            <!-- Cost Summary -->
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Cost Summary</h6>
+
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span>
+                                            {% if estimate.subtotal %}
+                                                ${{ estimate.subtotal|floatformat:2|intcomma }}
+                                            {% else %}
+                                                $0.00
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    {% if estimate.tax_rate %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Tax ({{ estimate.tax_rate }}%):</span>
+                                        <span>
+                                            {% if estimate.tax_amount %}
+                                                ${{ estimate.tax_amount|floatformat:2|intcomma }}
+                                            {% else %}
+                                                $0.00
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if estimate.discount_amount %}
+                                    <div class="d-flex justify-content-between mb-2 text-success">
+                                        <span>Discount:</span>
+                                        <span>-${{ estimate.discount_amount|floatformat:2|intcomma }}</span>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if estimate.is_rush and estimate.rush_fee %}
+                                    <div class="d-flex justify-content-between mb-2 text-danger">
+                                        <span>Rush Fee:</span>
+                                        <span>${{ estimate.rush_fee|floatformat:2|intcomma }}</span>
+                                    </div>
+                                    {% endif %}
+
+                                    <hr>
+
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total:</strong>
+                                        <strong class="text-success h5">
+                                            {% if estimate.total_cost %}
+                                                ${{ estimate.total_cost|floatformat:2|intcomma }}
+                                            {% else %}
+                                                $0.00
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes and Timeline -->
+    <div class="row mt-4">
+        <!-- Notes -->
+        {% if estimate.notes %}
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sticky-note"></i>
+                        Internal Notes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="bg-light p-3 rounded">
+                        {{ estimate.notes|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Timeline -->
+        <div class="col-lg-{% if estimate.notes %}6{% else %}12{% endif %} mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i>
+                        Estimate Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Estimate Created</h6>
+                                <p class="timeline-text">
+                                    Created by {{ estimate.created_by.get_full_name|default:estimate.created_by.username }}
+                                </p>
+                                <small class="text-muted">{{ estimate.created_at }}</small>
+                            </div>
+                        </div>
+
+                        {% if estimate.updated_at != estimate.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Estimate Updated</h6>
+                                <p class="timeline-text">Details were modified</p>
+                                <small class="text-muted">{{ estimate.updated_at }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if estimate.status == 'pending' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Pending Review</h6>
+                                <p class="timeline-text">Awaiting customer approval</p>
+                                <small class="text-muted">Current</small>
+                            </div>
+                        </div>
+                        {% elif estimate.status == 'approved' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Estimate Approved</h6>
+                                <p class="timeline-text">Customer approved the estimate</p>
+                                <small class="text-muted">{{ estimate.approved_at|default:"Recently" }}</small>
+                            </div>
+                        </div>
+                        {% elif estimate.status == 'rejected' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Estimate Rejected</h6>
+                                <p class="timeline-text">Customer declined the estimate</p>
+                                <small class="text-muted">{{ estimate.rejected_at|default:"Recently" }}</small>
+                            </div>
+                        </div>
+                        {% elif estimate.status == 'completed' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Job Completed</h6>
+                                <p class="timeline-text">Project has been finished</p>
+                                <small class="text-muted">{{ estimate.completed_at|default:"Recently" }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin: 20px 0;
+    padding-left: 60px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timeline-text {
+    margin-bottom: 5px;
+    color: #6c757d;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+
+address {
+    line-height: 1.4;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+function convertToJob() {
+    if (confirm('Convert this estimate to a production job? This will create a new project card.')) {
+        alert('Convert to job feature - Coming soon!');
+    }
+}
+
+function printEstimate() {
+    window.print();
+}
+
+// Auto-refresh functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight rush orders
+    const rushBadges = document.querySelectorAll('.badge.bg-danger');
+    rushBadges.forEach(function(badge) {
+        if (badge.textContent.includes('RUSH')) {
+            badge.style.animation = 'pulse 2s infinite';
+        }
+    });
+});
+
+// Add pulse animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -18,38 +18,100 @@
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="{% url 'homepage' %}">Home</a>
         </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+        </li>
+
+        <!-- Technology Department Menu -->
+        {% if user.profile.can_access_technology %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-cogs"></i> Technology
+          </a>
+          <ul class="dropdown-menu">
+            <li><h6 class="dropdown-header">Project Management</h6></li>
+            <li><a class="dropdown-item" href="{% url 'tracking:dashboard' %}"><i class="fas fa-tachometer-alt"></i> Technology Dashboard</a></li>
+            <li><a class="dropdown-item" href="{% url 'tracking:kanban_board' %}"><i class="fas fa-tasks"></i> Kanban Board</a></li>
+            <li><a class="dropdown-item" href="{% url 'tracking:card_list' %}"><i class="fas fa-list"></i> Project Cards</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><h6 class="dropdown-header">Operations</h6></li>
+            <li><a class="dropdown-item" href="{% url 'tracking:vehicle_list' %}"><i class="fas fa-truck"></i> Vehicle Management</a></li>
+            <li><a class="dropdown-item" href="{% url 'tracking:installation_list' %}"><i class="fas fa-calendar-alt"></i> Installation Schedule</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><h6 class="dropdown-header">Tools & Reports</h6></li>
+            <li><a class="dropdown-item" href="{% url 'tracking:kanban_mobile' %}"><i class="fas fa-mobile-alt"></i> Mobile Board</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar"></i> Tech Reports</a></li>
+            {% if user.is_staff %}
+            <li><hr class="dropdown-divider" /></li>
+            <li><a class="dropdown-item" href="{% url 'helpdesk:dashboard' %}"><i class="fas fa-headset"></i> Support Tickets</a></li>
+            {% endif %}
+          </ul>
+        </li>
+        {% endif %}
+
+        <!-- Print & Design Department Menu -->
+        {% if user.profile.can_access_print_design %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-print"></i> Print & Design
+          </a>
+          <ul class="dropdown-menu">
+            <li><h6 class="dropdown-header">Business Management</h6></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:dashboard' %}"><i class="fas fa-tachometer-alt"></i> Print Dashboard</a></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:customer_list' %}"><i class="fas fa-users"></i> Customer Management</a></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:estimate_list' %}"><i class="fas fa-file-invoice-dollar"></i> Estimates & Quotes</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><h6 class="dropdown-header">Product Catalog</h6></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:product_list' %}"><i class="fas fa-box"></i> Product Sheets</a></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:service_list' %}"><i class="fas fa-cogs"></i> Service Items</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><h6 class="dropdown-header">Analytics & Reports</h6></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:dashboard_advanced' %}"><i class="fas fa-chart-line"></i> Advanced Analytics</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf"></i> Sales Reports</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-envelope"></i> Email Templates</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li><h6 class="dropdown-header">Quick Actions</h6></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:customer_create' %}"><i class="fas fa-user-plus"></i> New Customer</a></li>
+            <li><a class="dropdown-item" href="{% url 'printdesign:estimate_create' %}"><i class="fas fa-plus-circle"></i> New Estimate</a></li>
+          </ul>
+        </li>
+        {% endif %}
+        {% endif %}
+
         <li class="nav-item">
           <a class="nav-link" href="#">About Us</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'helpdesk' %}">Help & Support</a>
         </li>
+
+        <!-- Legacy Bid Sheets (only for staff) -->
         {% if user.is_staff %}
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'helpdesk:dashboard' %}">Ticket Dashboard</a>
-        </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Bid Sheets
+            <i class="fas fa-file-contract"></i> Legacy Systems
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'bid_list' %}">All Bids</a></li>
-            <li><a class="dropdown-item" href="{% url 'bid_create' %}">Create New Bid</a></li>
+            <li><h6 class="dropdown-header">Bid Management</h6></li>
+            <li><a class="dropdown-item" href="{% url 'bidsheets:bid_list' %}"><i class="fas fa-list"></i> All Bids</a></li>
+            <li><a class="dropdown-item" href="{% url 'bidsheets:bid_create' %}"><i class="fas fa-plus"></i> Create New Bid</a></li>
             <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item" href="{% url 'customer_list' %}">Customers</a></li>
-            <li><a class="dropdown-item" href="{% url 'company_settings' %}">Settings</a></li>
+            <li><a class="dropdown-item" href="{% url 'bidsheets:customer_list' %}"><i class="fas fa-users"></i> Legacy Customers</a></li>
+            <li><a class="dropdown-item" href="{% url 'bidsheets:company_settings' %}"><i class="fas fa-cog"></i> Settings</a></li>
           </ul>
         </li>
         {% endif %}
+
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Our Products
+            <i class="fas fa-shopping-cart"></i> Our Products
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">New Products</a></li>
-            <li><a class="dropdown-item" href="#">All Products</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-star"></i> New Products</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-th"></i> All Products</a></li>
             <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item" href="#">Discontinued Products</a></li>
+            <li><a class="dropdown-item" href="#"><i class="fas fa-archive"></i> Discontinued Products</a></li>
           </ul>
         </li>
       </ul>

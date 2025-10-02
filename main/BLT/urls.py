@@ -20,13 +20,17 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from .views import HelpdeskView, Homepage
+from .views import DashboardView, HelpdeskView, Homepage, department_redirect
 
 urlpatterns = [
     path("", Homepage.as_view(), name="homepage"),
     path("helpdesk/", HelpdeskView.as_view(), name="helpdesk"),
+    path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path("login-redirect/", department_redirect, name="department_redirect"),
     path("tickets/", include("helpdesk.urls")),
     path("bids/", include("bidsheets.urls")),
+    path("printdesign/", include("printdesign.urls")),
+    path("tracking/", include("tracking.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

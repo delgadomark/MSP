@@ -1,0 +1,303 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-calendar-plus"></i>
+                    {{ title }}
+                </h1>
+                <a href="{% url 'tracking:installation_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if installation %}edit{% else %}plus{% endif %}"></i>
+                        Installation Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Scheduling Information -->
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Scheduling Information</h6>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.scheduled_date.id_for_label }}" class="form-label">Date</label>
+                                            {{ form.scheduled_date }}
+                                            {% if form.scheduled_date.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.scheduled_date.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.scheduled_time.id_for_label }}" class="form-label">Time</label>
+                                            {{ form.scheduled_time }}
+                                            {% if form.scheduled_time.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.scheduled_time.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">Estimated Duration (hours)</label>
+                                    {{ form.estimated_duration }}
+                                    {% if form.estimated_duration.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.estimated_duration.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.installation_type.id_for_label }}" class="form-label">Installation Type</label>
+                                    {{ form.installation_type }}
+                                    {% if form.installation_type.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.installation_type.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                                    {{ form.priority }}
+                                    {% if form.priority.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.priority.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Customer and Location -->
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Customer & Location</h6>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.customer.id_for_label }}" class="form-label">Customer</label>
+                                    {{ form.customer }}
+                                    {% if form.customer.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.customer.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.address.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="mb-3">
+                                            <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                                            {{ form.city }}
+                                            {% if form.city.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.city.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="mb-3">
+                                            <label for="{{ form.state.id_for_label }}" class="form-label">State</label>
+                                            {{ form.state }}
+                                            {% if form.state.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.state.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.zip_code.id_for_label }}" class="form-label">ZIP Code</label>
+                                    {{ form.zip_code }}
+                                    {% if form.zip_code.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.zip_code.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Assignment and Equipment -->
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3 mt-3">Assignment & Equipment</h6>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.assigned_technician.id_for_label }}" class="form-label">Assigned Technician</label>
+                                    {{ form.assigned_technician }}
+                                    {% if form.assigned_technician.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.assigned_technician.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.vehicle.id_for_label }}" class="form-label">Vehicle</label>
+                                    {{ form.vehicle }}
+                                    {% if form.vehicle.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.vehicle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.required_equipment.id_for_label }}" class="form-label">Required Equipment</label>
+                                    {{ form.required_equipment }}
+                                    {% if form.required_equipment.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.required_equipment.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">List any special equipment needed for this installation</div>
+                                </div>
+                            </div>
+
+                            <!-- Status and Project Details -->
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3 mt-3">Status & Project Details</h6>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.project_card.id_for_label }}" class="form-label">Related Project Card</label>
+                                    {{ form.project_card }}
+                                    {% if form.project_card.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.project_card.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.estimated_cost.id_for_label }}" class="form-label">Estimated Cost</label>
+                                    {{ form.estimated_cost }}
+                                    {% if form.estimated_cost.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.estimated_cost.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description and Notes -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-muted mb-3 mt-3">Installation Details</h6>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Detailed description of the installation work to be performed</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.special_instructions.id_for_label }}" class="form-label">Special Instructions</label>
+                                            {{ form.special_instructions }}
+                                            {% if form.special_instructions.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.special_instructions.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.notes.id_for_label }}" class="form-label">Internal Notes</label>
+                                            {{ form.notes }}
+                                            {% if form.notes.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'tracking:installation_list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i>
+                                        {% if installation %}Update Installation{% else %}Schedule Installation{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 8px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.text-muted {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.invalid-feedback {
+    font-size: 0.875em;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today for scheduling
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
+
+    // Auto-fill city/state based on ZIP code (placeholder for future implementation)
+    const zipInput = document.querySelector('input[name$="zip_code"]');
+    if (zipInput) {
+        zipInput.addEventListener('blur', function() {
+            // Future: ZIP code lookup functionality
+        });
+    }
+});
+</script>
+{% endblock %}

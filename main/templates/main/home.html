@@ -426,10 +426,10 @@
 
                 {% if user.is_staff %}
                     <div class="d-grid gap-2 mb-3">
-                        <a href="{% url 'bid_list' %}" class="btn btn-tech">
+                        <a href="{% url 'bidsheets:bid_list' %}" class="btn btn-tech">
                             <i class="fas fa-file-invoice-dollar me-2"></i>Bid Management
                         </a>
-                        <a href="{% url 'customer_list' %}" class="btn btn-outline-primary btn-outline-customer">
+                        <a href="{% url 'bidsheets:customer_list' %}" class="btn btn-outline-primary btn-outline-customer">
                             <i class="fas fa-users me-2"></i>Customer Portal
                         </a>
                         <a href="{% url 'helpdesk:dashboard' %}" class="btn btn-outline-secondary btn-outline-support">

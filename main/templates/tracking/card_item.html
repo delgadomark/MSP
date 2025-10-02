@@ -1,0 +1,234 @@
+<!-- Project Card Item Template -->
+<div class="card mb-2 project-card" data-card-id="{{ card.pk }}" data-status="{{ card.status }}">
+    <div class="card-body p-2">
+        <!-- Card Header with Priority and Type -->
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex align-items-center">
+                <!-- Priority Indicator -->
+                <span class="priority-indicator priority-{{ card.priority }}"></span>
+
+                <!-- Department Badge -->
+                <span class="badge bg-{% if card.department == 'technology' %}primary{% else %}success{% endif %} me-1">
+                    {% if card.department == 'technology' %}
+                        <i class="fas fa-laptop"></i>
+                    {% else %}
+                        <i class="fas fa-print"></i>
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Card Menu -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'tracking:card_detail' card.pk %}">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'tracking:card_edit' card.pk %}">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" onclick="archiveCard({{ card.pk }})">
+                            <i class="fas fa-archive"></i> Archive
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Card Title -->
+        <h6 class="card-title mb-2">
+            <a href="{% url 'tracking:card_detail' card.pk %}" class="text-decoration-none">
+                {{ card.title|truncatechars:40 }}
+            </a>
+        </h6>
+
+        <!-- Card Description -->
+        {% if card.description %}
+        <p class="card-text small text-muted mb-2">
+            {{ card.description|truncatechars:80 }}
+        </p>
+        {% endif %}
+
+        <!-- Customer Information -->
+        {% if card.tech_customer or card.print_customer %}
+        <div class="customer-info mb-2">
+            <small class="text-muted">
+                <i class="fas fa-user"></i>
+                {% if card.tech_customer %}
+                    {{ card.tech_customer.name }}
+                {% else %}
+                    {{ card.print_customer.name }}
+                {% endif %}
+            </small>
+        </div>
+        {% endif %}
+
+        <!-- Assignment and Dates -->
+        <div class="card-meta">
+            {% if card.assigned_to %}
+            <div class="d-flex align-items-center mb-1">
+                <div class="avatar-small bg-secondary text-white me-1">
+                    {{ card.assigned_to.first_name|first|default:card.assigned_to.username|first|upper }}
+                </div>
+                <small class="text-muted">{{ card.assigned_to.get_full_name|default:card.assigned_to.username }}</small>
+            </div>
+            {% endif %}
+
+            <!-- Due Date and SLA Status -->
+            {% if card.sla_due_date %}
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <i class="fas fa-clock"></i>
+                    {{ card.sla_due_date|date:"M d" }}
+                </small>
+
+                {% if card.sla_breached %}
+                    <span class="badge bg-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        SLA Breach
+                    </span>
+                {% elif card.sla_due_date|timeuntil|default:""|slice:":1" == "0" %}
+                    <span class="badge bg-warning">
+                        <i class="fas fa-clock"></i>
+                        Due Soon
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Related Items -->
+        <div class="card-footer-icons mt-2 pt-2 border-top">
+            <div class="d-flex justify-content-between">
+                <div class="d-flex">
+                    <!-- Estimate Link -->
+                    {% if card.print_estimate %}
+                    <span class="me-2" title="Print Estimate">
+                        <i class="fas fa-calculator text-success"></i>
+                    </span>
+                    {% endif %}
+
+                    <!-- Bid Sheet Link -->
+                    {% if card.bid_sheet %}
+                    <span class="me-2" title="Bid Sheet">
+                        <i class="fas fa-file-invoice-dollar text-primary"></i>
+                    </span>
+                    {% endif %}
+
+                    <!-- Comments Count -->
+                    {% if card.comments.count %}
+                    <span class="me-2" title="{{ card.comments.count }} comment{{ card.comments.count|pluralize }}">
+                        <i class="fas fa-comment"></i>
+                        <small>{{ card.comments.count }}</small>
+                    </span>
+                    {% endif %}
+
+                    <!-- Attachments Count -->
+                    {% if card.attachments.count %}
+                    <span class="me-2" title="{{ card.attachments.count }} attachment{{ card.attachments.count|pluralize }}">
+                        <i class="fas fa-paperclip"></i>
+                        <small>{{ card.attachments.count }}</small>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Priority Level -->
+                <div>
+                    <span class="badge bg-{% if card.priority == 'urgent' %}danger{% elif card.priority == 'high' %}warning{% elif card.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                        {{ card.get_priority_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.project-card {
+    cursor: move;
+    transition: transform 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.priority-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.priority-urgent {
+    background-color: #dc3545;
+}
+
+.priority-high {
+    background-color: #fd7e14;
+}
+
+.priority-medium {
+    background-color: #0dcaf0;
+}
+
+.priority-low {
+    background-color: #6c757d;
+}
+
+.avatar-small {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.card-footer-icons {
+    font-size: 0.8rem;
+}
+
+.card-footer-icons .fas {
+    opacity: 0.7;
+}
+
+/* Department-specific card borders */
+.project-card[data-status^="tech_"] {
+    border-left-color: #0d6efd;
+}
+
+.project-card[data-status^="print_"] {
+    border-left-color: #198754;
+}
+
+/* Status-specific backgrounds */
+.project-card[data-status$="_completed"],
+.project-card[data-status$="_delivered"] {
+    background-color: #f8fff9;
+}
+
+.project-card[data-status$="_in_progress"],
+.project-card[data-status$="_production"],
+.project-card[data-status$="_design_phase"] {
+    background-color: #f8f9ff;
+}
+
+.project-card[data-status$="_awaiting_client"],
+.project-card[data-status$="_client_approval"] {
+    background-color: #fffdf8;
+}
+</style>

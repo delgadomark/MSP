@@ -1,0 +1,450 @@
+{% extends "main/base.html" %}
+{% load humanize %}
+
+{% block title %}Installation Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-wrench"></i>
+                    Installation #{{ installation.id }}
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'tracking:installation_edit' installation.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i>
+                        Edit Installation
+                    </a>
+                    <a href="{% url 'tracking:installation_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Schedule
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status and Quick Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h5 class="mb-1">Status</h5>
+                            {% if installation.status == 'scheduled' %}
+                                <span class="badge bg-warning fs-6">Scheduled</span>
+                            {% elif installation.status == 'in_progress' %}
+                                <span class="badge bg-primary fs-6">In Progress</span>
+                            {% elif installation.status == 'completed' %}
+                                <span class="badge bg-success fs-6">Completed</span>
+                            {% elif installation.status == 'cancelled' %}
+                                <span class="badge bg-danger fs-6">Cancelled</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">{{ installation.status|title }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="mb-1">Scheduled Date</h5>
+                            <p class="mb-0">{{ installation.scheduled_date|date:"M j, Y" }}</p>
+                            <small class="text-muted">{{ installation.scheduled_time|time:"g:i A" }}</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="mb-1">Customer</h5>
+                            <p class="mb-0">{{ installation.customer.name|default:"Not assigned" }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="mb-1">Technician</h5>
+                            <p class="mb-0">{{ installation.assigned_technician.get_full_name|default:"Unassigned" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Details -->
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Installation Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Type:</strong><br>
+                            <span class="text-muted">{{ installation.get_installation_type_display|default:"Standard Installation" }}</span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Priority:</strong><br>
+                            {% if installation.priority == 'high' %}
+                                <span class="badge bg-danger">High Priority</span>
+                            {% elif installation.priority == 'medium' %}
+                                <span class="badge bg-warning">Medium Priority</span>
+                            {% else %}
+                                <span class="badge bg-info">Normal Priority</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Estimated Duration:</strong><br>
+                            <span class="text-muted">
+                                {% if installation.estimated_duration %}
+                                    {{ installation.estimated_duration }} hours
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Estimated Cost:</strong><br>
+                            <span class="text-muted">
+                                {% if installation.estimated_cost %}
+                                    ${{ installation.estimated_cost|floatformat:2 }}
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if installation.description %}
+                    <div class="mb-3">
+                        <strong>Description:</strong><br>
+                        <div class="bg-light p-3 rounded mt-2">
+                            {{ installation.description|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if installation.required_equipment %}
+                    <div class="mb-3">
+                        <strong>Required Equipment:</strong><br>
+                        <div class="bg-light p-3 rounded mt-2">
+                            {{ installation.required_equipment|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Location and Contact -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Location & Contact
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if installation.customer %}
+                    <div class="mb-3">
+                        <strong>Customer:</strong><br>
+                        <span class="text-muted">{{ installation.customer.name }}</span><br>
+                        {% if installation.customer.email %}
+                            <small class="text-muted">
+                                <i class="fas fa-envelope"></i>
+                                {{ installation.customer.email }}
+                            </small><br>
+                        {% endif %}
+                        {% if installation.customer.phone %}
+                            <small class="text-muted">
+                                <i class="fas fa-phone"></i>
+                                {{ installation.customer.phone }}
+                            </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <strong>Installation Address:</strong><br>
+                        {% if installation.address %}
+                            <address class="text-muted mb-0">
+                                {{ installation.address }}<br>
+                                {% if installation.city %}{{ installation.city }}, {% endif %}{% if installation.state %}{{ installation.state }} {% endif %}{% if installation.zip_code %}{{ installation.zip_code }}{% endif %}
+                            </address>
+                        {% else %}
+                            <span class="text-muted">Address not specified</span>
+                        {% endif %}
+                    </div>
+
+                    {% if installation.special_instructions %}
+                    <div class="mb-3">
+                        <strong>Special Instructions:</strong><br>
+                        <div class="alert alert-info">
+                            {{ installation.special_instructions|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if installation.vehicle %}
+                    <div class="mb-3">
+                        <strong>Assigned Vehicle:</strong><br>
+                        <span class="text-muted">{{ installation.vehicle }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Connection and Timeline -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i>
+                        Installation Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Installation Scheduled</h6>
+                                <p class="timeline-text">
+                                    Created by {{ installation.created_by.get_full_name|default:installation.created_by.username }}
+                                </p>
+                                <small class="text-muted">{{ installation.created_at }}</small>
+                            </div>
+                        </div>
+
+                        {% if installation.updated_at != installation.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Installation Updated</h6>
+                                <p class="timeline-text">Schedule details were modified</p>
+                                <small class="text-muted">{{ installation.updated_at }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if installation.status == 'in_progress' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Installation Started</h6>
+                                <p class="timeline-text">Work is currently in progress</p>
+                                <small class="text-muted">Current</small>
+                            </div>
+                        </div>
+                        {% elif installation.status == 'completed' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Installation Completed</h6>
+                                <p class="timeline-text">Work has been finished successfully</p>
+                                <small class="text-muted">{{ installation.completed_at|default:"Recently" }}</small>
+                            </div>
+                        </div>
+                        {% elif installation.status == 'cancelled' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Installation Cancelled</h6>
+                                <p class="timeline-text">Installation was cancelled</p>
+                                <small class="text-muted">{{ installation.cancelled_at|default:"Recently" }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions and Status -->
+        <div class="col-lg-4 mb-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if installation.status == 'scheduled' %}
+                        <button class="btn btn-success" onclick="startInstallation()">
+                            <i class="fas fa-play"></i>
+                            Start Installation
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="postponeInstallation()">
+                            <i class="fas fa-clock"></i>
+                            Postpone
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="cancelInstallation()">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        {% elif installation.status == 'in_progress' %}
+                        <button class="btn btn-primary" onclick="completeInstallation()">
+                            <i class="fas fa-check"></i>
+                            Mark Complete
+                        </button>
+                        <button class="btn btn-outline-info" onclick="addProgress()">
+                            <i class="fas fa-plus"></i>
+                            Add Progress Note
+                        </button>
+                        {% elif installation.status == 'completed' %}
+                        <button class="btn btn-outline-primary" onclick="generateReport()">
+                            <i class="fas fa-file-alt"></i>
+                            Generate Report
+                        </button>
+                        {% endif %}
+
+                        <button class="btn btn-outline-secondary" onclick="printDetails()">
+                            <i class="fas fa-print"></i>
+                            Print Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {% if installation.project_card %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-link"></i>
+                        Related Project
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6><a href="{% url 'tracking:card_detail' installation.project_card.pk %}" class="text-decoration-none">{{ installation.project_card.title }}</a></h6>
+                    <p class="text-muted small">{{ installation.project_card.description|truncatechars:100 }}</p>
+                    <span class="badge bg-info">{{ installation.project_card.get_status_display }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    {% if installation.notes %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sticky-note"></i>
+                        Internal Notes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="bg-light p-3 rounded">
+                        {{ installation.notes|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin: 20px 0;
+    padding-left: 60px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timeline-text {
+    margin-bottom: 5px;
+    color: #6c757d;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+
+address {
+    line-height: 1.4;
+}
+</style>
+
+<script>
+function startInstallation() {
+    if (confirm('Mark this installation as in progress?')) {
+        alert('Start installation feature - Coming soon!');
+    }
+}
+
+function completeInstallation() {
+    if (confirm('Mark this installation as completed?')) {
+        alert('Complete installation feature - Coming soon!');
+    }
+}
+
+function postponeInstallation() {
+    alert('Postpone installation feature - Coming soon!');
+}
+
+function cancelInstallation() {
+    if (confirm('Are you sure you want to cancel this installation?')) {
+        alert('Cancel installation feature - Coming soon!');
+    }
+}
+
+function addProgress() {
+    alert('Add progress note feature - Coming soon!');
+}
+
+function generateReport() {
+    alert('Generate report feature - Coming soon!');
+}
+
+function printDetails() {
+    window.print();
+}
+</script>
+{% endblock %}

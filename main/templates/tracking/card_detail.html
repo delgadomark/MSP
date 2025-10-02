@@ -1,0 +1,388 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ card.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-id-card"></i>
+                    {{ card.title }}
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'tracking:card_edit' card.id %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i>
+                        Edit Card
+                    </a>
+                    <a href="{% url 'tracking:card_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Cards
+                    </a>
+                    <a href="{% url 'tracking:kanban_board' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-tasks"></i>
+                        Kanban Board
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Info -->
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Project Details
+                    </h5>
+                    <div>
+                        {% if card.status == 'tech_backlog' or card.status == 'print_backlog' %}
+                            <span class="badge bg-secondary fs-6">{{ card.get_status_display }}</span>
+                        {% elif card.status == 'tech_in_progress' or card.status == 'print_design' or card.status == 'print_production' %}
+                            <span class="badge bg-warning fs-6">{{ card.get_status_display }}</span>
+                        {% elif card.status == 'tech_completed' or card.status == 'print_delivered' %}
+                            <span class="badge bg-success fs-6">{{ card.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge bg-info fs-6">{{ card.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Description</h6>
+                            <p>{{ card.description|linebreaks|default:"No description provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Department</h6>
+                            <p>
+                                <span class="badge bg-info">{{ card.get_department_display }}</span>
+                            </p>
+
+                            {% if card.priority %}
+                            <h6 class="text-muted mt-3">Priority</h6>
+                            <p>
+                                {% if card.priority == 'high' %}
+                                    <span class="badge bg-danger">High Priority</span>
+                                {% elif card.priority == 'medium' %}
+                                    <span class="badge bg-warning">Medium Priority</span>
+                                {% else %}
+                                    <span class="badge bg-info">Low Priority</span>
+                                {% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if card.requirements %}
+                    <hr>
+                    <h6 class="text-muted">Requirements</h6>
+                    <div class="bg-light p-3 rounded">
+                        {{ card.requirements|linebreaks }}
+                    </div>
+                    {% endif %}
+
+                    {% if card.notes %}
+                    <hr>
+                    <h6 class="text-muted">Notes</h6>
+                    <div class="bg-light p-3 rounded">
+                        {{ card.notes|linebreaks }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-lg-4 mb-4">
+            <!-- Status and Assignment -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user-cog"></i>
+                        Assignment & Timeline
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Assigned To:</strong><br>
+                        {% if card.assigned_to %}
+                            <span class="text-muted">
+                                {{ card.assigned_to.get_full_name|default:card.assigned_to.username }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">Unassigned</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Due Date:</strong><br>
+                        {% if card.due_date %}
+                            {% if card.due_date < today %}
+                                <span class="text-danger">{{ card.due_date }} (Overdue)</span>
+                            {% elif card.due_date <= upcoming_threshold %}
+                                <span class="text-warning">{{ card.due_date }} (Due Soon)</span>
+                            {% else %}
+                                <span class="text-muted">{{ card.due_date }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">No due date set</span>
+                        {% endif %}
+                    </div>
+
+                    {% if card.estimated_hours %}
+                    <div class="mb-3">
+                        <strong>Estimated Hours:</strong><br>
+                        <span class="text-muted">{{ card.estimated_hours }} hours</span>
+                    </div>
+                    {% endif %}
+
+                    {% if card.customer %}
+                    <div class="mb-3">
+                        <strong>Customer:</strong><br>
+                        <span class="text-muted">{{ card.customer }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if card.project_value %}
+                    <div class="mb-3">
+                        <strong>Project Value:</strong><br>
+                        <span class="text-success">${{ card.project_value|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if card.status != 'tech_completed' and card.status != 'print_delivered' %}
+                        <button class="btn btn-sm btn-outline-success" onclick="moveCard('{{ card.id }}', 'next')">
+                            <i class="fas fa-arrow-right"></i>
+                            Move to Next Stage
+                        </button>
+                        {% endif %}
+
+                        {% if card.status != 'tech_backlog' and card.status != 'print_backlog' %}
+                        <button class="btn btn-sm btn-outline-warning" onclick="moveCard('{{ card.id }}', 'back')">
+                            <i class="fas fa-arrow-left"></i>
+                            Move Back
+                        </button>
+                        {% endif %}
+
+                        <button class="btn btn-sm btn-outline-info" onclick="addComment('{{ card.id }}')">
+                            <i class="fas fa-comment"></i>
+                            Add Comment
+                        </button>
+
+                        {% if card.assigned_to != user %}
+                        <button class="btn btn-sm btn-outline-primary" onclick="assignToMe('{{ card.id }}')">
+                            <i class="fas fa-user-plus"></i>
+                            Assign to Me
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line"></i>
+                        Progress
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if card.department == 'technology' %}
+                        <div class="progress mb-2" style="height: 20px;">
+                            {% if card.status == 'tech_backlog' %}
+                                <div class="progress-bar bg-secondary" style="width: 25%">25%</div>
+                            {% elif card.status == 'tech_in_progress' %}
+                                <div class="progress-bar bg-warning" style="width: 50%">50%</div>
+                            {% elif card.status == 'tech_testing' %}
+                                <div class="progress-bar bg-info" style="width: 75%">75%</div>
+                            {% elif card.status == 'tech_completed' %}
+                                <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            {% if card.status == 'tech_backlog' %}Waiting to start{% endif %}
+                            {% if card.status == 'tech_in_progress' %}In development{% endif %}
+                            {% if card.status == 'tech_testing' %}Testing phase{% endif %}
+                            {% if card.status == 'tech_completed' %}Completed{% endif %}
+                        </small>
+                    {% else %}
+                        <div class="progress mb-2" style="height: 20px;">
+                            {% if card.status == 'print_backlog' %}
+                                <div class="progress-bar bg-secondary" style="width: 20%">20%</div>
+                            {% elif card.status == 'print_design' %}
+                                <div class="progress-bar bg-warning" style="width: 40%">40%</div>
+                            {% elif card.status == 'print_client_approval' %}
+                                <div class="progress-bar bg-info" style="width: 60%">60%</div>
+                            {% elif card.status == 'print_production' %}
+                                <div class="progress-bar bg-primary" style="width: 80%">80%</div>
+                            {% elif card.status == 'print_delivered' %}
+                                <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            {% if card.status == 'print_backlog' %}Waiting to start{% endif %}
+                            {% if card.status == 'print_design' %}Design phase{% endif %}
+                            {% if card.status == 'print_client_approval' %}Client review{% endif %}
+                            {% if card.status == 'print_production' %}In production{% endif %}
+                            {% if card.status == 'print_delivered' %}Delivered{% endif %}
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i>
+                        Project Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Project Created</h6>
+                                <p class="timeline-text">
+                                    Created by {{ card.created_by.get_full_name|default:card.created_by.username }}
+                                </p>
+                                <small class="text-muted">{{ card.created_at }}</small>
+                            </div>
+                        </div>
+
+                        {% if card.updated_at != card.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Last Updated</h6>
+                                <p class="timeline-text">Project details were modified</p>
+                                <small class="text-muted">{{ card.updated_at }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Additional timeline items would go here -->
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-secondary"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Current Status</h6>
+                                <p class="timeline-text">{{ card.get_status_display }}</p>
+                                <small class="text-muted">Active</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin: 20px 0;
+    padding-left: 60px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timeline-text {
+    margin-bottom: 5px;
+    color: #6c757d;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+</style>
+
+<script>
+function moveCard(cardId, direction) {
+    // Implementation for moving cards between statuses
+    alert('Card movement feature - Coming soon!');
+}
+
+function addComment(cardId) {
+    // Implementation for adding comments
+    alert('Comment feature - Coming soon!');
+}
+
+function assignToMe(cardId) {
+    // Implementation for self-assignment
+    alert('Assignment feature - Coming soon!');
+}
+
+// Auto-refresh functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for overdue items
+    const dueDateElements = document.querySelectorAll('.text-danger');
+    dueDateElements.forEach(function(element) {
+        if (element.textContent.includes('Overdue')) {
+            element.style.animation = 'pulse 2s infinite';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -24,7 +24,7 @@
                             More Actions
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'bid_create' %}?customer={{ bid.customer.pk }}">
+                            <li><a class="dropdown-item" href="{% url 'bidsheets:bid_create' %}?customer={{ bid.customer.pk }}">
                                 <i class="fas fa-plus text-primary"></i> Create New Bid for {{ bid.customer.name }}
                             </a></li>
                             <li><hr class="dropdown-divider" /></li>
@@ -32,7 +32,7 @@
                                 <i class="fas fa-trash text-danger"></i> Delete
                             </a></li>
                             <li><hr class="dropdown-divider" /></li>
-                            <li><a class="dropdown-item" href="{% url 'bid_list' %}">
+                            <li><a class="dropdown-item" href="{% url 'bidsheets:bid_list' %}">
                                 <i class="fas fa-list"></i> Back to List
                             </a></li>
                         </ul>

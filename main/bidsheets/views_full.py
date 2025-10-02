@@ -13,18 +13,29 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views.decorators.csrf import csrf_exempt
-
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from .models import BidSheet, BidItem, Customer, CompanyInfo, ServiceItem, BidEmailLog
-from .forms import BidSheetForm, BidItemFormSet, CustomerForm, EmailBidForm, CompanyInfoForm
+from .forms import (
+    BidItemFormSet,
+    BidSheetForm,
+    CompanyInfoForm,
+    CustomerForm,
+    EmailBidForm,
+)
+from .models import BidEmailLog, BidItem, BidSheet, CompanyInfo, Customer, ServiceItem
 
 
 class BidSheetListView(LoginRequiredMixin, ListView):
@@ -129,7 +140,7 @@ class BidSheetUpdateView(LoginRequiredMixin, UpdateView):
 class BidSheetDeleteView(LoginRequiredMixin, DeleteView):
     model = BidSheet
     template_name = "bidsheets/bid_confirm_delete.html"
-    success_url = reverse_lazy("bid_list")
+    success_url = reverse_lazy("bidsheets:bid_list")
 
     def delete(self, request, *args, **kwargs):
         result = super().delete(request, *args, **kwargs)
@@ -148,7 +159,7 @@ class CustomerCreateView(LoginRequiredMixin, CreateView):
     model = Customer
     form_class = CustomerForm
     template_name = "bidsheets/customer_form.html"
-    success_url = reverse_lazy("customer_list")
+    success_url = reverse_lazy("bidsheets:customer_list")
 
     def form_valid(self, form):
         messages.success(self.request, f"Customer {form.instance.name} created successfully!")
@@ -159,7 +170,7 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
     model = Customer
     form_class = CustomerForm
     template_name = "bidsheets/customer_form.html"
-    success_url = reverse_lazy("customer_list")
+    success_url = reverse_lazy("bidsheets:customer_list")
 
     def form_valid(self, form):
         messages.success(self.request, f"Customer {form.instance.name} updated successfully!")
@@ -366,7 +377,11 @@ def email_bid(request, pk):
                     # Use the same PDF generation logic as above
                     # (abbreviated for brevity - would use same code as generate_bid_pdf)
 
-                    email.attach(f"Bid_{bid.bid_number}.pdf", buffer.getvalue(), "application/pdf")
+                    email.attach(
+                        f"Bid_{bid.bid_number}.pdf",
+                        buffer.getvalue(),
+                        "application/pdf",
+                    )
 
                 # Send email
                 email.send()
@@ -387,7 +402,8 @@ def email_bid(request, pk):
                     bid.save()
 
                 messages.success(
-                    request, f'Bid emailed successfully to {form.cleaned_data["recipient_email"]}'
+                    request,
+                    f'Bid emailed successfully to {form.cleaned_data["recipient_email"]}',
                 )
                 return redirect("bid_detail", pk=bid.pk)
 
@@ -437,12 +453,14 @@ def company_settings(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Company information updated successfully!")
-            return redirect("company_settings")
+            return redirect("bidsheets:company_settings")
     else:
         form = CompanyInfoForm(instance=company_info)
 
     return render(
-        request, "bidsheets/company_settings.html", {"form": form, "company_info": company_info}
+        request,
+        "bidsheets/company_settings.html",
+        {"form": form, "company_info": company_info},
     )
 
 

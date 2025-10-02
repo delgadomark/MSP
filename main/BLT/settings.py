@@ -47,9 +47,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     # My Apps
+    "accounts",
     "helpdesk",
     "bidsheets",
+    "printdesign",
+    "tracking",
 ]
 
 MIDDLEWARE = [
@@ -168,7 +172,7 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_TIMEOUT = 30
 
 
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/login-redirect/"
 
 if os.environ.get("TESTING_ENVIRONMENT") == "true":
     # This environment variable is passed during testing.

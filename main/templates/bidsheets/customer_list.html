@@ -10,10 +10,10 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>Customers</h1>
                 <div>
-                    <a href="{% url 'customer_create' %}" class="btn btn-primary">
+                    <a href="{% url 'bidsheets:customer_create' %}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> New Customer
                     </a>
-                    <a href="{% url 'bid_list' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'bidsheets:bid_list' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-file-invoice-dollar"></i> Back to Bids
                     </a>
                 </div>
@@ -51,7 +51,7 @@
                                                 <a href="{% url 'customer_edit' customer.pk %}" class="btn btn-outline-secondary" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="{% url 'bid_create' %}?customer={{ customer.pk }}" class="btn btn-outline-primary" title="Create Bid">
+                                                <a href="{% url 'bidsheets:bid_create' %}?customer={{ customer.pk }}" class="btn btn-outline-primary" title="Create Bid">
                                                     <i class="fas fa-file-invoice-dollar"></i>
                                                 </a>
                                             </div>
@@ -99,7 +99,7 @@
                     <div class="card-body">
                         <h4>No Customers Yet</h4>
                         <p class="text-muted">Add your first customer to get started with bid sheets.</p>
-                        <a href="{% url 'customer_create' %}" class="btn btn-primary">
+                        <a href="{% url 'bidsheets:customer_create' %}" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Add First Customer
                         </a>
                     </div>

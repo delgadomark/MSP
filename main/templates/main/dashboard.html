@@ -1,0 +1,237 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Blue Line Dashboard{% endblock title %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-tachometer-alt text-primary"></i>
+                Blue Line Dashboard
+            </h1>
+
+            {% if user.first_name %}
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-user"></i>
+                    Welcome back, {{ user.first_name }}!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Technology Department Card -->
+        {% if can_access_technology %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-laptop"></i>
+                        Technology Department
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Manage helpdesk tickets, customer support, and technology services.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'helpdesk' %}" class="btn btn-primary">
+                            <i class="fas fa-headset"></i>
+                            Enter Helpdesk
+                        </a>
+                        <a href="{% url 'bidsheets:bid_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            View Bid Sheets
+                        </a>
+                        <a href="{% url 'tracking:kanban_board' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-tasks"></i>
+                            Project Tracking
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-clock"></i>
+                        Last accessed: Today
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Print & Design Department Card -->
+        {% if can_access_print_design %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-print"></i>
+                        Print & Design Department
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Manage print customers, design projects, and production estimates.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'printdesign:dashboard' %}" class="btn btn-success">
+                            <i class="fas fa-palette"></i>
+                            Enter Print & Design
+                        </a>
+                        <a href="{% url 'printdesign:customer_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-users"></i>
+                            Print Customers
+                        </a>
+                        <a href="{% url 'printdesign:estimate_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-calculator"></i>
+                            Print Estimates
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-clock"></i>
+                        Last accessed: Today
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3 class="mb-3">
+                <i class="fas fa-bolt text-warning"></i>
+                Quick Actions
+            </h3>
+        </div>
+
+        {% if can_access_technology %}
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-2x text-info mb-2"></i>
+                    <h6 class="card-title">New Ticket</h6>
+                    <a href="#" class="btn btn-sm btn-info">Create</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if can_access_print_design %}
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-invoice fa-2x text-warning mb-2"></i>
+                    <h6 class="card-title">New Estimate</h6>
+                    <a href="{% url 'printdesign:estimate_create' %}" class="btn btn-sm btn-warning">Create</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-plus fa-2x text-secondary mb-2"></i>
+                    <h6 class="card-title">Schedule</h6>
+                    <a href="{% url 'tracking:installation_list' %}" class="btn btn-sm btn-secondary">View</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-dark">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x text-dark mb-2"></i>
+                    <h6 class="card-title">Reports</h6>
+                    <a href="{% url 'tracking:sla_report' %}" class="btn btn-sm btn-dark">View</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i>
+                        Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if can_access_technology %}
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Technology</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <small class="text-muted">Today 2:30 PM</small><br>
+                                    <i class="fas fa-ticket-alt text-info"></i>
+                                    New ticket created: Network Issue
+                                </li>
+                                <li class="mb-2">
+                                    <small class="text-muted">Today 1:15 PM</small><br>
+                                    <i class="fas fa-file-invoice-dollar text-success"></i>
+                                    Bid sheet approved: Office Setup
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if can_access_print_design %}
+                        <div class="col-md-6">
+                            <h6 class="text-success">Print & Design</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <small class="text-muted">Today 11:45 AM</small><br>
+                                    <i class="fas fa-calculator text-warning"></i>
+                                    New estimate: Business Cards
+                                </li>
+                                <li class="mb-2">
+                                    <small class="text-muted">Yesterday 4:20 PM</small><br>
+                                    <i class="fas fa-user text-info"></i>
+                                    New customer: ABC Marketing
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Notice -->
+    {% if not can_access_technology and not can_access_print_design %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Limited Access:</strong>
+                Your account doesn't have access to any departments. Please contact your administrator for access permissions.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if is_master_user %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-crown"></i>
+                <strong>Master User Access:</strong>
+                You have full access to both Technology and Print & Design departments.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock content %}

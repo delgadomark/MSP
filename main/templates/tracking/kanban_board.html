@@ -1,0 +1,399 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Project Tracking Board{% endblock title %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="text-primary">
+                    <i class="fas fa-tasks"></i>
+                    Project Tracking Board
+                </h1>
+                <div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i>
+                        Dashboard
+                    </a>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" id="tech-view" onclick="showDepartment('tech')">
+                            <i class="fas fa-laptop"></i>
+                            Technology
+                        </button>
+                        <button class="btn btn-outline-success" id="print-view" onclick="showDepartment('print')">
+                            <i class="fas fa-print"></i>
+                            Print & Design
+                        </button>
+                        <button class="btn btn-primary" id="all-view" onclick="showDepartment('all')">
+                            <i class="fas fa-th"></i>
+                            All Projects
+                        </button>
+                    </div>
+                    <a href="{% url 'tracking:card_create' %}" class="btn btn-success ms-2">
+                        <i class="fas fa-plus"></i>
+                        New Project
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ total_cards }}</h4>
+                    <small>Total Projects</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ completed_today }}</h4>
+                    <small>Completed Today</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ overdue_cards.count }}</h4>
+                    <small>SLA Breached</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4>{{ tech_columns.in_progress.count|add:print_columns.design_phase.count|add:print_columns.production.count }}</h4>
+                    <small>In Progress</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technology Department Board -->
+    <div id="tech-board" class="department-board">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="text-primary">
+                    <i class="fas fa-laptop"></i>
+                    Technology Workflow
+                </h3>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Backlog -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-secondary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-inbox"></i>
+                            Backlog
+                            <span class="badge bg-light text-dark ms-1">{{ tech_columns.backlog.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="tech_backlog">
+                        {% for card in tech_columns.backlog %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- In Progress -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-play"></i>
+                            In Progress
+                            <span class="badge bg-light text-dark ms-1">{{ tech_columns.in_progress.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="tech_in_progress">
+                        {% for card in tech_columns.in_progress %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Awaiting Client -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-warning text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-clock"></i>
+                            Awaiting Client
+                            <span class="badge bg-light text-dark ms-1">{{ tech_columns.awaiting_client.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="tech_awaiting_client">
+                        {% for card in tech_columns.awaiting_client %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testing -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-vial"></i>
+                            Testing
+                            <span class="badge bg-light text-dark ms-1">{{ tech_columns.testing.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="tech_testing">
+                        {% for card in tech_columns.testing %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-success text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-check"></i>
+                            Completed
+                            <span class="badge bg-light text-dark ms-1">{{ tech_columns.completed.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="tech_completed">
+                        {% for card in tech_columns.completed %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print & Design Department Board -->
+    <div id="print-board" class="department-board" style="display: none;">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="text-success">
+                    <i class="fas fa-print"></i>
+                    Print & Design Workflow
+                </h3>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Design Brief -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-secondary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-file-alt"></i>
+                            Design Brief
+                            <span class="badge bg-light text-dark ms-1">{{ print_columns.design_brief.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="print_design_brief">
+                        {% for card in print_columns.design_brief %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design Phase -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-palette"></i>
+                            Design Phase
+                            <span class="badge bg-light text-dark ms-1">{{ print_columns.design_phase.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="print_design_phase">
+                        {% for card in print_columns.design_phase %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Approval -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-warning text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-thumbs-up"></i>
+                            Client Approval
+                            <span class="badge bg-light text-dark ms-1">{{ print_columns.client_approval.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="print_client_approval">
+                        {% for card in print_columns.client_approval %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Production -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-cogs"></i>
+                            Production
+                            <span class="badge bg-light text-dark ms-1">{{ print_columns.production.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="print_production">
+                        {% for card in print_columns.production %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Check -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-dark text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-search"></i>
+                            Quality Check
+                            <span class="badge bg-light text-dark ms-1">{{ print_columns.quality_check.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="print_quality_check">
+                        {% for card in print_columns.quality_check %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivered -->
+            <div class="col-md-2">
+                <div class="kanban-column">
+                    <div class="kanban-header bg-success text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-shipping-fast"></i>
+                            Delivered
+                            <span class="badge bg-light text-dark ms-1">{{ print_columns.delivered.count }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-cards" data-status="print_delivered">
+                        {% for card in print_columns.delivered %}
+                            {% include 'tracking/card_item.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLA Alerts -->
+    {% if overdue_cards %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h5 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    SLA Breaches Requiring Attention
+                </h5>
+                <div class="row">
+                    {% for card in overdue_cards %}
+                    <div class="col-md-4 mb-2">
+                        <div class="card border-warning">
+                            <div class="card-body py-2">
+                                <h6 class="card-title mb-1">
+                                    <a href="{% url 'tracking:card_detail' card.pk %}">{{ card.title }}</a>
+                                </h6>
+                                <small class="text-muted">
+                                    {{ card.get_department_display }} -
+                                    SLA: {{ card.sla_hours }}h
+                                    {% if card.sla_breach_reason %}
+                                        <br>Reason: {{ card.sla_breach_reason }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.kanban-column {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+    min-height: 600px;
+}
+
+.kanban-header {
+    padding: 0.75rem;
+    border-radius: 0.375rem 0.375rem 0 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.kanban-cards {
+    padding: 0.5rem;
+    min-height: 550px;
+}
+
+.department-board {
+    margin-bottom: 3rem;
+}
+
+.btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+}
+</style>
+
+<script>
+function showDepartment(dept) {
+    // Hide all boards
+    document.getElementById('tech-board').style.display = 'none';
+    document.getElementById('print-board').style.display = 'none';
+
+    // Remove active class from all buttons
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected board and activate button
+    if (dept === 'tech') {
+        document.getElementById('tech-board').style.display = 'block';
+        document.getElementById('tech-view').classList.add('active');
+    } else if (dept === 'print') {
+        document.getElementById('print-board').style.display = 'block';
+        document.getElementById('print-view').classList.add('active');
+    } else {
+        document.getElementById('tech-board').style.display = 'block';
+        document.getElementById('print-board').style.display = 'block';
+        document.getElementById('all-view').classList.add('active');
+    }
+}
+
+// Initialize with all view
+document.addEventListener('DOMContentLoaded', function() {
+    showDepartment('all');
+});
+</script>
+{% endblock content %}

@@ -1,0 +1,362 @@
+{% extends "main/base.html" %}
+{% load humanize %}
+
+{% block title %}Vehicle Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-truck"></i>
+                    Vehicle Management
+                </h1>
+                <div>
+                    <a href="{% url 'tracking:dashboard' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                    <a href="{% url 'tracking:vehicle_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add New Vehicle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search"
+                                   value="{{ search_query }}" placeholder="Search by make, model, or license...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="maintenance" {% if status_filter == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                                <option value="out_of_service" {% if status_filter == 'out_of_service' %}selected{% endif %}>Out of Service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="vehicle_type" class="form-label">Type</label>
+                            <select class="form-control" id="vehicle_type" name="vehicle_type">
+                                <option value="">All Types</option>
+                                <option value="truck" {% if type_filter == 'truck' %}selected{% endif %}>Truck</option>
+                                <option value="van" {% if type_filter == 'van' %}selected{% endif %}>Van</option>
+                                <option value="car" {% if type_filter == 'car' %}selected{% endif %}>Car</option>
+                                <option value="trailer" {% if type_filter == 'trailer' %}selected{% endif %}>Trailer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i> Filter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-truck fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-0">{{ total_vehicles }}</h5>
+                            <p class="card-text">Total Vehicles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-0">{{ active_vehicles }}</h5>
+                            <p class="card-text">Active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-wrench fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-0">{{ maintenance_vehicles }}</h5>
+                            <p class="card-text">In Maintenance</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-times-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title mb-0">{{ out_of_service_vehicles }}</h5>
+                            <p class="card-text">Out of Service</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Vehicle Fleet
+                        {% if vehicles.paginator.count %}
+                            <span class="badge bg-secondary">{{ vehicles.paginator.count }} total</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if vehicles %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Vehicle</th>
+                                        <th>License Plate</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Mileage</th>
+                                        <th>Next Service</th>
+                                        <th>Current Assignment</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vehicle in vehicles %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ vehicle.make }} {{ vehicle.model }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ vehicle.year }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-dark">{{ vehicle.license_plate }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ vehicle.get_vehicle_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            {% if vehicle.status == 'active' %}
+                                                <span class="badge bg-success">{{ vehicle.get_status_display }}</span>
+                                            {% elif vehicle.status == 'maintenance' %}
+                                                <span class="badge bg-warning text-dark">{{ vehicle.get_status_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{{ vehicle.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if vehicle.current_mileage %}
+                                                {{ vehicle.current_mileage|floatformat:0|intcomma }} mi
+                                            {% else %}
+                                                <span class="text-muted">Not recorded</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if vehicle.next_service_date %}
+                                                {{ vehicle.next_service_date|date:"M d, Y" }}
+                                                {% if vehicle.next_service_date <= today %}
+                                                    <br><small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Due</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Not scheduled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if vehicle.current_driver %}
+                                                <i class="fas fa-user"></i> {{ vehicle.current_driver.get_full_name|default:vehicle.current_driver.username }}
+                                            {% else %}
+                                                <span class="text-muted">Unassigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'tracking:vehicle_detail' vehicle.pk %}"
+                                                   class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'tracking:vehicle_edit' vehicle.pk %}"
+                                                   class="btn btn-outline-secondary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-info"
+                                                        title="Service History"
+                                                        onclick="showServiceHistory({{ vehicle.pk }})">
+                                                    <i class="fas fa-history"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if vehicles.has_other_pages %}
+                        <nav aria-label="Vehicle pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if vehicles.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ vehicles.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&vehicle_type={{ type_filter }}{% endif %}">Previous</a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in vehicles.paginator.page_range %}
+                                    {% if vehicles.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > vehicles.number|add:'-3' and num < vehicles.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&vehicle_type={{ type_filter }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if vehicles.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ vehicles.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&vehicle_type={{ type_filter }}{% endif %}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Vehicles Found</h4>
+                            <p class="text-muted">
+                                {% if search_query or status_filter or type_filter %}
+                                    No vehicles match your current filters.
+                                    <br>
+                                    <a href="{% url 'tracking:vehicle_list' %}" class="btn btn-outline-secondary mt-2">
+                                        Clear Filters
+                                    </a>
+                                {% else %}
+                                    Start by adding your first vehicle to the fleet.
+                                {% endif %}
+                            </p>
+                            {% if not search_query and not status_filter and not type_filter %}
+                            <a href="{% url 'tracking:vehicle_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Add First Vehicle
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service History Modal -->
+<div class="modal fade" id="serviceHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-history"></i>
+                    Service History
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="serviceHistoryContent">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading service history...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showServiceHistory(vehicleId) {
+    const modal = new bootstrap.Modal(document.getElementById('serviceHistoryModal'));
+    const content = document.getElementById('serviceHistoryContent');
+
+    content.innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Loading service history...</p>
+        </div>
+    `;
+
+    modal.show();
+
+    // Simulate loading service history
+    setTimeout(() => {
+        content.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Service history tracking will be implemented in the next phase.
+            </div>
+            <p>This feature will include:</p>
+            <ul>
+                <li>Maintenance records</li>
+                <li>Repair history</li>
+                <li>Fuel consumption tracking</li>
+                <li>Cost analysis</li>
+            </ul>
+        `;
+    }, 1000);
+}
+</script>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.btn-group-sm > .btn {
+    font-size: 0.8rem;
+}
+</style>
+{% endblock %}

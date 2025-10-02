@@ -1,0 +1,433 @@
+{% extends "main/base.html" %}
+{% load humanize %}
+
+{% block title %}Print Design Estimates{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-calculator"></i>
+                    Print Design Estimates
+                </h1>
+                <a href="{% url 'printdesign:estimate_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Create New Estimate
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" name="search"
+                                   value="{{ search_query }}" placeholder="Search estimates...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Review</option>
+                                <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" name="date_range">
+                                <option value="">All Dates</option>
+                                <option value="today" {% if date_range == 'today' %}selected{% endif %}>Today</option>
+                                <option value="this_week" {% if date_range == 'this_week' %}selected{% endif %}>This Week</option>
+                                <option value="this_month" {% if date_range == 'this_month' %}selected{% endif %}>This Month</option>
+                                <option value="last_month" {% if date_range == 'last_month' %}selected{% endif %}>Last Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i>
+                                    Filter
+                                </button>
+                                <a href="{% url 'printdesign:estimate_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-file-invoice fa-2x text-info mb-2"></i>
+                    <h5>{{ total_estimates }}</h5>
+                    <small class="text-muted">Total Estimates</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h5>{{ pending_estimates }}</h5>
+                    <small class="text-muted">Pending Review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-check fa-2x text-success mb-2"></i>
+                    <h5>{{ approved_estimates }}</h5>
+                    <small class="text-muted">Approved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-dollar-sign fa-2x text-primary mb-2"></i>
+                    <h5>
+                        {% if total_value %}
+                            ${{ total_value|floatformat:0|intcomma }}
+                        {% else %}
+                            $0
+                        {% endif %}
+                    </h5>
+                    <small class="text-muted">Total Value</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estimates List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Print Design Estimates</h5>
+                </div>
+                <div class="card-body">
+                    {% if estimates %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Estimate #</th>
+                                        <th>Customer</th>
+                                        <th>Project</th>
+                                        <th>Date Created</th>
+                                        <th>Total Value</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for estimate in estimates %}
+                                    <tr>
+                                        <td>
+                                            <strong>#{{ estimate.id|stringformat:"05d" }}</strong>
+                                            {% if estimate.is_rush %}
+                                                <span class="badge bg-danger ms-1">RUSH</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if estimate.customer %}
+                                                {{ estimate.customer.name }}
+                                                <br><small class="text-muted">{{ estimate.customer.company|default:"" }}</small>
+                                            {% else %}
+                                                <span class="text-muted">No customer assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ estimate.project_name|truncatechars:30 }}</strong>
+                                            {% if estimate.description %}
+                                                <br><small class="text-muted">{{ estimate.description|truncatechars:50 }}</small>
+                                            {% endif %}
+                                            {% if estimate.quantity %}
+                                                <br><small class="text-info">Qty: {{ estimate.quantity|intcomma }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ estimate.created_at|date:"M j, Y" }}
+                                            <br><small class="text-muted">{{ estimate.created_at|time:"g:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">
+                                                {% if estimate.total_cost %}
+                                                    ${{ estimate.total_cost|floatformat:2|intcomma }}
+                                                {% else %}
+                                                    $0.00
+                                                {% endif %}
+                                            </strong>
+                                            {% if estimate.profit_margin %}
+                                                <br><small class="text-muted">{{ estimate.profit_margin }}% margin</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if estimate.status == 'draft' %}
+                                                <span class="badge bg-secondary">Draft</span>
+                                            {% elif estimate.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending Review</span>
+                                            {% elif estimate.status == 'approved' %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% elif estimate.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif estimate.status == 'completed' %}
+                                                <span class="badge bg-info">Completed</span>
+                                            {% else %}
+                                                <span class="badge bg-light">{{ estimate.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'printdesign:estimate_detail' estimate.pk %}"
+                                                   class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'printdesign:estimate_edit' estimate.pk %}"
+                                                   class="btn btn-outline-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if estimate.status == 'draft' or estimate.status == 'pending' %}
+                                                <button class="btn btn-outline-success"
+                                                        onclick="sendEstimate({{ estimate.pk }})" title="Send to Customer">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
+                                                {% endif %}
+                                                <div class="dropdown">
+                                                    <button class="btn btn-outline-secondary dropdown-toggle"
+                                                            type="button" data-bs-toggle="dropdown">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="#" onclick="duplicateEstimate({{ estimate.pk }})">
+                                                            <i class="fas fa-copy"></i> Duplicate
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="#" onclick="convertToJob({{ estimate.pk }})">
+                                                            <i class="fas fa-arrow-right"></i> Convert to Job
+                                                        </a></li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><a class="dropdown-item" href="#" onclick="downloadPDF({{ estimate.pk }})">
+                                                            <i class="fas fa-file-pdf"></i> Download PDF
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="#" onclick="printEstimate({{ estimate.pk }})">
+                                                            <i class="fas fa-print"></i> Print
+                                                        </a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if estimates.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if estimates.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ estimates.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_range %}&date_range={{ date_range }}{% endif %}">
+                                            Previous
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in estimates.paginator.page_range %}
+                                    {% if estimates.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > estimates.number|add:'-3' and num < estimates.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_range %}&date_range={{ date_range }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if estimates.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ estimates.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_range %}&date_range={{ date_range }}{% endif %}">
+                                            Next
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No estimates found</h4>
+                            <p class="text-muted">
+                                {% if search_query or status_filter or date_range %}
+                                    No estimates match your current filters. Try adjusting your search criteria or
+                                    <a href="{% url 'printdesign:estimate_list' %}">clear all filters</a>.
+                                {% else %}
+                                    Get started by creating your first print design estimate.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'printdesign:estimate_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Create First Estimate
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    {% if recent_estimates %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock"></i>
+                        Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for estimate in recent_estimates %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Estimate #{{ estimate.id|stringformat:"05d" }} - {{ estimate.project_name }}</h6>
+                                <p class="mb-1">{{ estimate.customer.name|default:"No customer" }}</p>
+                                <small class="text-muted">{{ estimate.created_at|naturaltime }}</small>
+                            </div>
+                            <div>
+                                {% if estimate.status == 'draft' %}
+                                    <span class="badge bg-secondary">Draft</span>
+                                {% elif estimate.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif estimate.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-success">
+                                    {% if estimate.total_cost %}
+                                        ${{ estimate.total_cost|floatformat:2|intcomma }}
+                                    {% else %}
+                                        $0.00
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+</style>
+
+<script>
+function sendEstimate(estimateId) {
+    if (confirm('Send this estimate to the customer?')) {
+        alert('Send estimate feature - Coming soon!');
+    }
+}
+
+function duplicateEstimate(estimateId) {
+    if (confirm('Create a copy of this estimate?')) {
+        alert('Duplicate estimate feature - Coming soon!');
+    }
+}
+
+function convertToJob(estimateId) {
+    if (confirm('Convert this estimate to a production job?')) {
+        alert('Convert to job feature - Coming soon!');
+    }
+}
+
+function downloadPDF(estimateId) {
+    alert('PDF download feature - Coming soon!');
+}
+
+function printEstimate(estimateId) {
+    alert('Print estimate feature - Coming soon!');
+}
+
+// Auto-refresh for new estimates
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight rush estimates
+    document.querySelectorAll('.badge.bg-danger').forEach(function(badge) {
+        if (badge.textContent === 'RUSH') {
+            badge.style.animation = 'pulse 2s infinite';
+        }
+    });
+});
+
+// Add pulse animation for rush orders
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

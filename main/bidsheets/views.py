@@ -170,7 +170,7 @@ class BidSheetUpdateView(LoginRequiredMixin, UpdateView):
 class BidSheetDeleteView(LoginRequiredMixin, DeleteView):
     model = BidSheet
     template_name = "bidsheets/bid_confirm_delete.html"
-    success_url = reverse_lazy("bid_list")
+    success_url = reverse_lazy("bidsheets:bid_list")
 
     def delete(self, request, *args, **kwargs):
         result = super().delete(request, *args, **kwargs)
@@ -189,7 +189,7 @@ class CustomerCreateView(LoginRequiredMixin, CreateView):
     model = Customer
     form_class = CustomerForm
     template_name = "bidsheets/customer_form.html"
-    success_url = reverse_lazy("customer_list")
+    success_url = reverse_lazy("bidsheets:customer_list")
 
     def form_valid(self, form):
         messages.success(self.request, f"Customer {form.instance.name} created successfully!")
@@ -200,7 +200,7 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
     model = Customer
     form_class = CustomerForm
     template_name = "bidsheets/customer_form.html"
-    success_url = reverse_lazy("customer_list")
+    success_url = reverse_lazy("bidsheets:customer_list")
 
     def form_valid(self, form):
         messages.success(self.request, f"Customer {form.instance.name} updated successfully!")
@@ -542,7 +542,7 @@ def company_settings(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Company information updated successfully!")
-            return redirect("company_settings")
+            return redirect("bidsheets:company_settings")
     else:
         form = CompanyInfoForm(instance=company_info)
 

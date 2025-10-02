@@ -1,0 +1,325 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Print & Design Dashboard{% endblock title %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-success">
+                    <i class="fas fa-print"></i>
+                    Print & Design Dashboard
+                </h1>
+                <div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Main Dashboard
+                    </a>
+                    <a href="{% url 'printdesign:dashboard_advanced' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-line"></i>
+                        Advanced Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Customers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_customers }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Estimates
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ active_estimates }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calculator fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Pending Approval
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ pending_approval }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Monthly Revenue
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ revenue_this_month|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'printdesign:customer_create' %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-user-plus"></i>
+                                New Customer
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'printdesign:estimate_create' %}" class="btn btn-success btn-block">
+                                <i class="fas fa-calculator"></i>
+                                New Estimate
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'printdesign:product_create' %}" class="btn btn-info btn-block">
+                                <i class="fas fa-plus-circle"></i>
+                                New Product
+                            </a>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'tracking:kanban_board' %}" class="btn btn-warning btn-block">
+                                <i class="fas fa-tasks"></i>
+                                Project Board
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!-- Recent Estimates Column -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Estimates</h6>
+                    <a href="{% url 'printdesign:estimate_list' %}" class="btn btn-sm btn-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_estimates %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Estimate #</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for estimate in recent_estimates %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'printdesign:estimate_detail' estimate.pk %}">
+                                                {{ estimate.estimate_number }}
+                                            </a>
+                                        </td>
+                                        <td>{{ estimate.customer.name }}</td>
+                                        <td>
+                                            <span class="badge badge-{% if estimate.status == 'approved' %}success{% elif estimate.status == 'sent' %}warning{% else %}secondary{% endif %}">
+                                                {{ estimate.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>${{ estimate.total_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No estimates yet. <a href="{% url 'printdesign:estimate_create' %}">Create your first estimate</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu Column -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">Department Menu</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'printdesign:customer_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users text-primary"></i>
+                            <strong>Customers</strong>
+                            <span class="badge badge-primary badge-pill float-right">{{ total_customers }}</span>
+                        </a>
+                        <a href="{% url 'printdesign:estimate_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calculator text-success"></i>
+                            <strong>Estimates</strong>
+                            <span class="badge badge-success badge-pill float-right">{{ active_estimates }}</span>
+                        </a>
+                        <a href="{% url 'printdesign:service_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cogs text-info"></i>
+                            <strong>Service Items</strong>
+                        </a>
+                        <a href="{% url 'printdesign:product_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-box text-warning"></i>
+                            <strong>Product Sheets</strong>
+                        </a>
+                        <a href="{% url 'tracking:kanban_board' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tasks text-secondary"></i>
+                            <strong>Project Tracking</strong>
+                        </a>
+                        <a href="{% url 'tracking:installation_list' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-alt text-dark"></i>
+                            <strong>Installation Schedule</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history"></i>
+                        Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">New estimate created</h6>
+                                <p class="text-muted">Business cards for ABC Corp - 2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Customer added</h6>
+                                <p class="text-muted">XYZ Marketing joined as new print customer - 5 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Estimate approved</h6>
+                                <p class="text-muted">Banner project for DEF Company approved - Yesterday</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.timeline-content {
+    background: #f8f9fc;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 3px solid #e3e6f0;
+}
+.timeline-title {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+</style>
+{% endblock content %}

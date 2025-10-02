@@ -2,6 +2,8 @@ from django.urls import path
 
 from . import views
 
+app_name = "bidsheets"
+
 urlpatterns = [
     # Bid Sheet URLs
     path("", views.BidSheetListView.as_view(), name="bid_list"),

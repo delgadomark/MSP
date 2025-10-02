@@ -1,0 +1,378 @@
+{% extends "main/base.html" %}
+{% load humanize %}
+
+{% block title %}Installation Schedule{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-primary">
+                    <i class="fas fa-calendar-alt"></i>
+                    Installation Schedule
+                </h1>
+                <a href="{% url 'tracking:installation_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Schedule Installation
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" name="search"
+                                   value="{{ search_query }}" placeholder="Search installations...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" name="date_range">
+                                <option value="">All Dates</option>
+                                <option value="today" {% if date_range == 'today' %}selected{% endif %}>Today</option>
+                                <option value="this_week" {% if date_range == 'this_week' %}selected{% endif %}>This Week</option>
+                                <option value="next_week" {% if date_range == 'next_week' %}selected{% endif %}>Next Week</option>
+                                <option value="this_month" {% if date_range == 'this_month' %}selected{% endif %}>This Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i>
+                                    Filter
+                                </button>
+                                <a href="{% url 'tracking:installation_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-calendar fa-2x text-info mb-2"></i>
+                    <h5>{{ total_installations }}</h5>
+                    <small class="text-muted">Total Installations</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h5>{{ scheduled_installations }}</h5>
+                    <small class="text-muted">Scheduled</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-cog fa-2x text-primary mb-2"></i>
+                    <h5>{{ in_progress_installations }}</h5>
+                    <small class="text-muted">In Progress</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-check fa-2x text-success mb-2"></i>
+                    <h5>{{ completed_installations }}</h5>
+                    <small class="text-muted">Completed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installations List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Installation Schedule</h5>
+                </div>
+                <div class="card-body">
+                    {% if installations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Customer</th>
+                                        <th>Address</th>
+                                        <th>Type</th>
+                                        <th>Technician</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for installation in installations %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ installation.scheduled_date|date:"M j, Y" }}</strong><br>
+                                            <small class="text-muted">{{ installation.scheduled_time|time:"g:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if installation.customer %}
+                                                {{ installation.customer.name }}
+                                                <br><small class="text-muted">{{ installation.customer.phone|default:"No phone" }}</small>
+                                            {% else %}
+                                                <span class="text-muted">No customer assigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if installation.address %}
+                                                {{ installation.address|truncatechars:50 }}
+                                                {% if installation.city %}
+                                                    <br><small class="text-muted">{{ installation.city }}, {{ installation.state|default:"" }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Address TBD</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if installation.installation_type %}
+                                                <span class="badge bg-info">{{ installation.get_installation_type_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Standard</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if installation.assigned_technician %}
+                                                {{ installation.assigned_technician.get_full_name|default:installation.assigned_technician.username }}
+                                            {% else %}
+                                                <span class="text-muted">Unassigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if installation.status == 'scheduled' %}
+                                                <span class="badge bg-warning">Scheduled</span>
+                                            {% elif installation.status == 'in_progress' %}
+                                                <span class="badge bg-primary">In Progress</span>
+                                            {% elif installation.status == 'completed' %}
+                                                <span class="badge bg-success">Completed</span>
+                                            {% elif installation.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ installation.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'tracking:installation_detail' installation.pk %}"
+                                                   class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'tracking:installation_edit' installation.pk %}"
+                                                   class="btn btn-outline-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if installation.status == 'scheduled' %}
+                                                <button class="btn btn-outline-success"
+                                                        onclick="startInstallation({{ installation.pk }})" title="Start">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                                {% elif installation.status == 'in_progress' %}
+                                                <button class="btn btn-outline-info"
+                                                        onclick="completeInstallation({{ installation.pk }})" title="Complete">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if installations.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if installations.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ installations.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_range %}&date_range={{ date_range }}{% endif %}">
+                                            Previous
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in installations.paginator.page_range %}
+                                    {% if installations.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > installations.number|add:'-3' and num < installations.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_range %}&date_range={{ date_range }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if installations.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ installations.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_range %}&date_range={{ date_range }}{% endif %}">
+                                            Next
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No installations scheduled</h4>
+                            <p class="text-muted">
+                                {% if search_query or status_filter or date_range %}
+                                    No installations match your current filters. Try adjusting your search criteria or
+                                    <a href="{% url 'tracking:installation_list' %}">clear all filters</a>.
+                                {% else %}
+                                    Get started by scheduling your first installation.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'tracking:installation_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Schedule First Installation
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Schedule -->
+    {% if todays_installations %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-today"></i>
+                        Today's Schedule ({{ todays_installations|length }} installation{{ todays_installations|length|pluralize }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for installation in todays_installations %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 border-left-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="card-title">{{ installation.scheduled_time|time:"g:i A" }}</h6>
+                                        {% if installation.status == 'scheduled' %}
+                                            <span class="badge bg-warning">Scheduled</span>
+                                        {% elif installation.status == 'in_progress' %}
+                                            <span class="badge bg-primary">In Progress</span>
+                                        {% elif installation.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="card-text">
+                                        <strong>Customer:</strong> {{ installation.customer.name|default:"TBD" }}<br>
+                                        <strong>Address:</strong> {{ installation.address|truncatechars:30|default:"TBD" }}<br>
+                                        <strong>Technician:</strong> {{ installation.assigned_technician.get_full_name|default:"Unassigned" }}
+                                    </p>
+                                    <a href="{% url 'tracking:installation_detail' installation.pk %}" class="btn btn-sm btn-outline-primary">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.border-left-primary {
+    border-left: 4px solid #007bff !important;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
+<script>
+function startInstallation(installationId) {
+    if (confirm('Mark this installation as in progress?')) {
+        // Implementation for starting installation
+        alert('Start installation feature - Coming soon!');
+    }
+}
+
+function completeInstallation(installationId) {
+    if (confirm('Mark this installation as completed?')) {
+        // Implementation for completing installation
+        alert('Complete installation feature - Coming soon!');
+    }
+}
+
+// Auto-refresh for today's schedule
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight overdue installations
+    const now = new Date();
+    const timeElements = document.querySelectorAll('[data-scheduled-time]');
+
+    timeElements.forEach(function(element) {
+        const scheduledTime = new Date(element.getAttribute('data-scheduled-time'));
+        if (scheduledTime < now && element.closest('tr').querySelector('.badge').textContent === 'Scheduled') {
+            element.style.color = '#dc3545';
+            element.style.fontWeight = 'bold';
+        }
+    });
+});
+</script>
+{% endblock %}

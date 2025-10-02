@@ -9,7 +9,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>{% if object %}Edit Bid - {{ object.bid_number }}{% else %}Create New Bid{% endif %}</h1>
-                <a href="{% url 'bid_list' %}" class="btn btn-secondary">
+                <a href="{% url 'bidsheets:bid_list' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Back to List
                 </a>
             </div>
@@ -52,7 +52,7 @@
                                             <label for="{{ form.customer.id_for_label }}" class="form-label">{{ form.customer.label }}</label>
                                             {{ form.customer }}
                                             <div class="form-text">
-                                                <a href="{% url 'customer_create' %}" target="_blank">Add new customer</a>
+                                                <a href="{% url 'bidsheets:customer_create' %}" target="_blank">Add new customer</a>
                                             </div>
                                             {% if form.customer.errors %}
                                                 <div class="text-danger">{{ form.customer.errors }}</div>
@@ -231,7 +231,7 @@
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="fas fa-save"></i> {% if object %}Update Bid{% else %}Create Bid{% endif %}
                                 </button>
-                                <a href="{% url 'bid_list' %}" class="btn btn-secondary btn-lg">
+                                <a href="{% url 'bidsheets:bid_list' %}" class="btn btn-secondary btn-lg">
                                     <i class="fas fa-times"></i> Cancel
                                 </a>
                             </div>
