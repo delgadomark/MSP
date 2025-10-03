@@ -102,6 +102,12 @@ class VehicleForm(forms.ModelForm):
             "year",
             "color",
             "vin",
+            "status",
+            "vehicle_type",
+            "department",
+            "current_driver",
+            "current_mileage",
+            "company",
             "print_customer",
             "notes",
         ]
@@ -127,6 +133,18 @@ class VehicleForm(forms.ModelForm):
             ),
             "vin": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "17-character VIN"}
+            ),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "vehicle_type": forms.Select(attrs={"class": "form-select"}),
+            "department": forms.Select(attrs={"class": "form-select"}),
+            "current_driver": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Current driver name"}
+            ),
+            "current_mileage": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Current mileage"}
+            ),
+            "company": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Company name"}
             ),
             "print_customer": forms.Select(attrs={"class": "form-select"}),
             "notes": forms.Textarea(

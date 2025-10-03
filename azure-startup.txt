@@ -1,0 +1,14 @@
+# Azure App Service deployment configuration
+
+# Startup Command for Azure App Service
+gunicorn --bind=0.0.0.0 --timeout 600 BLT.wsgi:application
+
+# Environment Variables to set in Azure:
+# DJANGO_SETTINGS_MODULE=BLT.settings_production
+# SECRET_KEY=your-secret-key-here
+# DB_NAME=your-database-name
+# DB_USER=your-database-user
+# DB_PASSWORD=your-database-password
+# DB_HOST=your-database-host
+# EMAIL_HOST_USER=your-company-email@company.com
+# EMAIL_HOST_PASSWORD=your-app-password

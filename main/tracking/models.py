@@ -252,7 +252,7 @@ class Vehicle(models.Model):
     department = models.CharField(max_length=20, choices=DEPARTMENT_CHOICES, default="shared")
     current_driver = models.CharField(max_length=100, blank=True)
     current_mileage = models.IntegerField(null=True, blank=True)
-    next_service_date = models.DateField(null=True, blank=True)
+    company = models.CharField(max_length=100, blank=True)
 
     # Customer relationship (can be either tech or print customer)
     tech_customer = models.ForeignKey(
